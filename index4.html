@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trend Car Rental — الرواتب والموظفين</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<audio id="alertSound" src="das.mp3" preload="auto"></audio>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#07090e;--s1:#0d1018;--s2:#131720;--s3:#191f2a;
+  --br:#1d2436;--br2:#273050;
+  --gold:#c8973a;--gold2:#e8b55a;
+  --blue:#3b82f6;--green:#22c55e;--red:#ef4444;--orange:#f59e0b;--purple:#a855f7;
+  --tx:#edf0f7;--mu:#7a8599;--mu2:#44526a;
+  --r:10px;--rl:16px;
+  --sh:0 4px 24px rgba(0,0,0,.55);--shl:0 16px 56px rgba(0,0,0,.8);
+  --tr:.18s cubic-bezier(.4,0,.2,1);
+}
+body.light{
+  --bg:#f0f2f7;--s1:#ffffff;--s2:#f5f7fb;--s3:#eaecf4;
+  --br:#d1d8e8;--br2:#bcc6da;
+  --tx:#1a2035;--mu:#5a6a8a;--mu2:#8a9ab8;
+  --sh:0 4px 16px rgba(0,0,0,.08);--shl:0 12px 40px rgba(0,0,0,.14);
+}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--s1)}
+::-webkit-scrollbar-thumb{background:var(--br2);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--gold)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+
+/* ══ TOAST ══ */
+#toast{position:fixed;top:22px;left:50%;transform:translateX(-50%) translateY(-90px);background:var(--s2);border:1px solid var(--br2);color:var(--tx);padding:12px 28px;border-radius:50px;font-size:14px;font-weight:700;z-index:99999;box-shadow:var(--shl);transition:transform .38s cubic-bezier(.34,1.56,.64,1),opacity .38s;opacity:0;pointer-events:none;display:flex;align-items:center;gap:10px;max-width:90vw;white-space:nowrap}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast .tbar{position:absolute;bottom:0;left:0;height:3px;width:100%;background:linear-gradient(90deg,var(--purple),var(--blue));border-radius:0 0 50px 50px;animation:tbarA 3.5s linear forwards}
+@keyframes tbarA{from{width:100%}to{width:0}}
+
+/* ══ HEADER ══ */
+.hdr{height:62px;background:var(--s1);border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.hbrand{display:flex;align-items:center;gap:12px}
+.hbrand img{height:36px;object-fit:contain}
+.hbrand .hicon{font-size:26px;display:none}
+.htitle{font-size:14px;font-weight:900;border-right:1px solid var(--br);padding-right:12px}
+.hsub{font-size:11px;color:var(--purple);font-weight:700}
+.hright{display:flex;align-items:center;gap:7px}
+.hclock{font-size:12px;color:var(--mu);background:var(--s2);border:1px solid var(--br);padding:5px 12px;border-radius:50px;font-weight:600}
+.icobtn{width:36px;height:36px;background:var(--s2);border:1px solid var(--br);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:var(--tr);color:var(--mu)}
+.icobtn:hover{border-color:var(--br2);background:var(--s3);color:var(--tx)}
+.backbtn{padding:7px 13px;background:rgba(200,151,58,.1);border:1px solid rgba(200,151,58,.25);border-radius:8px;color:var(--gold);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:var(--tr);display:flex;align-items:center;gap:5px;text-decoration:none}
+.backbtn:hover{background:rgba(200,151,58,.2);border-color:var(--gold)}
+
+/* ══ STATS BAR ══ */
+.sbar{background:var(--s1);border-bottom:1px solid var(--br);padding:9px 18px;display:flex;gap:7px;overflow-x:auto;scrollbar-width:none}
+.sbar::-webkit-scrollbar{display:none}
+.chip{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--br);border-radius:50px;padding:6px 15px;white-space:nowrap;flex-shrink:0}
+.chip .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.chip .sn{font-size:18px;font-weight:900}
+.chip .sl{font-size:11px;color:var(--mu);font-weight:600}
+
+/* ══ LAYOUT ══ */
+.abody{display:grid;grid-template-columns:380px 1fr;min-height:calc(100vh - 108px)}
+
+/* ══ SIDEBAR ══ */
+.sidebar{background:var(--s1);border-left:1px solid var(--br);padding:15px;overflow-y:auto;position:sticky;top:62px;max-height:calc(100vh - 108px)}
+.fhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;padding-bottom:11px;border-bottom:1px solid var(--br)}
+.fhead h2{font-size:14px;font-weight:900;display:flex;align-items:center;gap:7px}
+.fbadge{font-size:10px;color:var(--mu);background:var(--s2);padding:3px 9px;border-radius:50px;border:1px solid var(--br)}
+.sec{font-size:10px;font-weight:700;color:var(--mu2);text-transform:uppercase;letter-spacing:.8px;margin:12px 0 7px;padding-bottom:4px;border-bottom:1px solid var(--br)}
+.fg{margin-bottom:9px}
+.fg label{display:block;font-size:11px;font-weight:700;color:var(--mu);margin-bottom:4px}
+.fg label .req{color:var(--red);margin-right:2px}
+.fi{width:100%;padding:9px 11px;background:var(--s2);border:1.5px solid var(--br);border-radius:var(--r);color:var(--tx);font-family:inherit;font-size:13px;transition:var(--tr);text-align:right;display:block}
+.fi:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px rgba(168,85,247,.1)}
+select.fi option{background:var(--s2);color:var(--tx)}
+.fi-ro{background:var(--s3);cursor:default}
+.fi-ro:focus{border-color:var(--br);box-shadow:none}
+.fi-net{background:var(--s3);color:var(--green);font-weight:900;font-size:15px;cursor:default}
+.fi-net:focus{border-color:var(--br);box-shadow:none}
+
+/* ══ LOANS SECTION ══ */
+.loans-wrap{background:var(--s2);border:1px solid var(--br);border-radius:var(--r);padding:10px;margin-bottom:9px}
+.loans-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.loan-row{display:grid;grid-template-columns:1fr 1fr 28px;gap:6px;align-items:center;animation:slideIn .2s ease}
+.loan-row input{padding:8px 10px;background:var(--s1);border:1.5px solid var(--br);border-radius:8px;color:var(--tx);font-family:inherit;font-size:12px;transition:var(--tr);text-align:right;width:100%}
+.loan-row input:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px rgba(168,85,247,.1)}
+.loan-del{width:28px;height:28px;border-radius:7px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.07);color:#f87171;font-size:13px;cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.loan-del:hover{background:rgba(239,68,68,.18);border-color:var(--red)}
+.add-loan-btn{width:100%;padding:8px;background:rgba(168,85,247,.08);border:1.5px dashed rgba(168,85,247,.35);border-radius:8px;color:#c084fc;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;gap:6px}
+.add-loan-btn:hover{background:rgba(168,85,247,.15);border-color:var(--purple)}
+.loans-total{text-align:left;font-size:11px;color:var(--mu);margin-top:6px;font-weight:700}
+.loans-total span{color:var(--red);font-size:13px}
+
+/* ══ BUTTONS ══ */
+.sbtn{width:100%;padding:12px;border:none;border-radius:var(--r);font-family:inherit;font-size:14px;font-weight:900;cursor:pointer;transition:var(--tr);margin-top:7px}
+.sbtn.add{background:linear-gradient(135deg,var(--purple),#7e22ce);color:#fff;box-shadow:0 4px 16px rgba(168,85,247,.25)}
+.sbtn.add:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(168,85,247,.4)}
+.sbtn.save{background:linear-gradient(135deg,var(--blue),#1d4ed8);color:#fff;box-shadow:0 4px 16px rgba(59,130,246,.2)}
+.sbtn.save:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(59,130,246,.35)}
+.cbtn{width:100%;padding:8px;background:transparent;border:1px solid var(--br2);border-radius:var(--r);color:var(--mu);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:var(--tr);margin-top:4px;display:none}
+.cbtn:hover{border-color:var(--red);color:var(--red)}
+.sactions{margin-top:12px;padding-top:12px;border-top:1px solid var(--br);display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.abtn{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border:1px solid var(--br);border-radius:var(--r);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;transition:var(--tr);background:var(--s2);color:var(--tx)}
+.abtn:hover{border-color:var(--br2);background:var(--s3)}
+.abtn.g{border-color:rgba(34,197,94,.3);color:#4ade80}.abtn.g:hover{background:rgba(34,197,94,.08);border-color:var(--green)}
+.abtn.b{border-color:rgba(59,130,246,.3);color:#60a5fa}.abtn.b:hover{background:rgba(59,130,246,.08);border-color:var(--blue)}
+.abtn.o{border-color:rgba(245,158,11,.3);color:#fbbf24}.abtn.o:hover{background:rgba(245,158,11,.08);border-color:var(--orange)}
+.abtn.r{border-color:rgba(239,68,68,.3);color:#f87171}.abtn.r:hover{background:rgba(239,68,68,.08);border-color:var(--red)}
+.abtn.full{grid-column:1/-1}
+
+/* ══ MAIN ══ */
+.main{padding:16px;overflow-y:auto}
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:9px}
+.tl h3{font-size:16px;font-weight:900}
+.tl p{font-size:12px;color:var(--mu);margin-top:1px}
+.tr2{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.sbox{position:relative}
+.sbox input{padding:8px 36px 8px 12px;background:var(--s2);border:1.5px solid var(--br);border-radius:50px;color:var(--tx);font-family:inherit;font-size:13px;transition:var(--tr);text-align:right;width:210px}
+.sbox input:focus{outline:none;border-color:var(--purple);background:var(--s1)}
+.sbox .si{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--mu);font-size:12px;pointer-events:none}
+
+/* ══ CARDS GRID ══ */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.ecard{background:var(--s1);border:1px solid var(--br);border-radius:var(--rl);padding:16px;cursor:pointer;transition:var(--tr);animation:fadeUp .3s ease}
+.ecard:hover{border-color:var(--br2);transform:translateY(-2px);box-shadow:var(--sh)}
+.ecard-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ecard-name{font-size:15px;font-weight:900}
+.ecard-id{font-size:11px;font-weight:700;color:var(--purple);font-family:monospace}
+.ecard-salary{font-size:13px;color:var(--mu);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.ecard-salary strong{color:var(--tx);font-size:15px}
+.ecard-bars{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.ebar{display:flex;align-items:center;justify-content:space-between;font-size:12px}
+.ebar .el{color:var(--mu);font-weight:600;display:flex;align-items:center;gap:5px}
+.ebar .ev{font-weight:700}
+.ecard-net{background:linear-gradient(135deg,rgba(34,197,94,.1),rgba(34,197,94,.05));border:1px solid rgba(34,197,94,.2);border-radius:9px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between}
+.ecard-net .nl{font-size:11px;color:var(--mu);font-weight:700}
+.ecard-net .nv{font-size:18px;font-weight:900;color:var(--green)}
+.ecard-actions{display:flex;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--br)}
+.eca{flex:1;padding:7px;border-radius:8px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;gap:4px}
+.eca.e{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:#fbbf24}.eca.e:hover{background:rgba(245,158,11,.2)}
+.eca.p{background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.25);color:#c084fc}.eca.p:hover{background:rgba(168,85,247,.2)}
+.eca.d{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171}.eca.d:hover{background:rgba(239,68,68,.2)}
+
+.empty-state{text-align:center;padding:60px 20px;color:var(--mu)}
+.empty-state .ei{font-size:44px;margin-bottom:12px;opacity:.4}
+.empty-state h3{font-size:15px;font-weight:900;color:var(--tx);margin-bottom:5px}
+
+/* ══ MODAL ══ */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;z-index:1000;padding:18px}
+.ov.open{display:flex}
+.modal{background:var(--s1);border:1px solid var(--br2);border-radius:20px;width:580px;max-width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shl);animation:fadeUp .28s ease}
+.mhdr{display:flex;align-items:center;justify-content:space-between;padding:17px 20px 13px;border-bottom:1px solid var(--br);position:sticky;top:0;background:var(--s1);z-index:2}
+.mhdr h3{font-size:15px;font-weight:900}
+.mcls{width:28px;height:28px;border-radius:50%;background:var(--s2);border:1px solid var(--br);color:var(--mu);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.mcls:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.mbody{padding:17px 20px}
+
+/* NET HIGHLIGHT IN MODAL */
+.net-block{background:linear-gradient(135deg,rgba(34,197,94,.1),rgba(34,197,94,.04));border:1px solid rgba(34,197,94,.25);border-radius:12px;padding:16px;margin-bottom:14px;text-align:center}
+.net-block .nb-label{font-size:12px;color:var(--mu);font-weight:700;margin-bottom:4px}
+.net-block .nb-val{font-size:28px;font-weight:900;color:var(--green)}
+.net-block .nb-eq{font-size:12px;color:var(--mu);margin-top:4px}
+
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.di{background:var(--s2);border:1px solid var(--br);border-radius:8px;padding:8px 11px}
+.di .dl{font-size:10px;color:var(--mu);letter-spacing:.5px;margin-bottom:3px;font-weight:700;text-transform:uppercase}
+.di .dv{font-size:13px;font-weight:700}
+.di.full{grid-column:1/-1}
+.loans-detail{background:var(--s2);border:1px solid var(--br);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.loans-detail .ldh{font-size:10px;color:var(--mu);font-weight:700;text-transform:uppercase;margin-bottom:7px}
+.loan-item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--br);font-size:12px}
+.loan-item:last-child{border-bottom:none}
+.loan-item .li-date{color:var(--mu)}
+.loan-item .li-amt{color:var(--red);font-weight:700}
+
+.mftr{display:flex;gap:7px;padding:12px 20px 16px;border-top:1px solid var(--br);flex-wrap:wrap}
+.mftr button{flex:1;min-width:80px;padding:9px;border-radius:var(--r);font-family:inherit;font-size:12px;font-weight:900;cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;gap:5px}
+.mb-e{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:#fbbf24}.mb-e:hover{background:rgba(245,158,11,.2)}
+.mb-p{background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.25);color:#c084fc}.mb-p:hover{background:rgba(168,85,247,.2)}
+.mb-d{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171}.mb-d:hover{background:rgba(239,68,68,.2)}
+.mb-c{background:var(--s2);border:1px solid var(--br);color:var(--mu)}.mb-c:hover{border-color:var(--br2);color:var(--tx)}
+
+/* ══ CONFIRM ══ */
+.cdlg{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;z-index:9999}
+.cdlg.open{display:flex}
+.cbox{background:var(--s1);border-radius:20px;padding:32px;width:380px;max-width:calc(100vw - 32px);text-align:center;animation:fadeUp .28s ease;border:1px solid rgba(239,68,68,.3)}
+.cbox .ci{font-size:42px;margin-bottom:12px}
+.cbox h3{font-size:16px;font-weight:900;color:var(--red);margin-bottom:7px}
+.cbox p{font-size:13px;color:var(--mu);margin-bottom:16px;line-height:1.6}
+.cbox input{width:100%;padding:11px;margin-bottom:14px;background:var(--s2);border:1.5px solid var(--br);border-radius:8px;color:var(--tx);font-family:inherit;font-size:14px;text-align:center;transition:var(--tr)}
+.cbox input:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(239,68,68,.1)}
+.cacts{display:flex;gap:8px}
+.cok{flex:1;padding:11px;background:var(--red);border:none;border-radius:9px;color:#fff;font-family:inherit;font-size:13px;font-weight:900;cursor:pointer;transition:var(--tr)}.cok:hover{background:#dc2626}
+.cno{flex:1;padding:11px;background:var(--s2);border:1px solid var(--br2);border-radius:9px;color:var(--mu);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:var(--tr)}.cno:hover{color:var(--tx)}
+
+@media(max-width:900px){
+  .abody{grid-template-columns:1fr}
+  .sidebar{position:relative;top:0;max-height:none;border-left:none;border-bottom:1px solid var(--br)}
+  .hclock{display:none}
+  .cards{grid-template-columns:1fr}
+}
+@media print{
+  #toast,.hdr,.sbar,.sidebar,.toolbar,.ecard-actions,.ov,.cdlg{display:none!important}
+  body{background:#fff;color:#000}
+}
+/* انسخ ده من logout.css */
+.logoutbtn{
+  padding:7px 13px;
+  background:rgba(239,68,68,.1);
+  border:1px solid rgba(239,68,68,.25);
+  border-radius:8px;
+  color:var(--red);
+  font-family:inherit;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  transition:var(--tr);
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+.logoutbtn:hover{
+  background:rgba(239,68,68,.2);
+  border-color:var(--red);
+}
+/* انسخ ده من menu.css */
+.combo-wrap{position:relative;display:inline-block}
+.combo-btn{
+  width:36px;height:36px;background:var(--s2);border:1px solid var(--br);
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:16px;transition:var(--tr);color:var(--mu);
+}
+.combo-btn:hover{border-color:var(--br2);background:var(--s3);color:var(--tx)}
+.combo-menu{
+  position:absolute;top:42px;left:0;background:var(--s1);border:1px solid var(--br2);
+  border-radius:12px;box-shadow:var(--shl);min-width:180px;overflow:hidden;
+  display:none;z-index:500;animation:fadeUp .18s ease;
+}
+.combo-menu.open{display:block}
+.combo-item{
+  display:flex;align-items:center;gap:9px;padding:10px 14px;
+  font-size:13px;font-weight:700;cursor:pointer;transition:var(--tr);
+  color:var(--tx);white-space:nowrap;
+}
+.combo-item:hover{background:var(--s2)}
+.combo-item:not(:last-child){border-bottom:1px solid var(--br)}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hbrand">
+    <img src="trendcar.png" alt="Trend" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <div class="hicon">👥</div>
+    <div>
+      <div class="htitle">Trend Car Rental</div>
+      <div class="hsub">الرواتب والموظفين</div>
+    </div>
+  </div>
+  <div class="hright">
+    <div class="combo-wrap">
+        <button class="combo-btn" onclick="toggleCombo()" title="القوائم">☰</button>
+        <div class="combo-menu" id="comboMenu">
+            <div class="combo-item" onclick="location.href='index.html'">📋 الحجوزات</div>
+            <div class="combo-item" onclick="location.href='index2.html'">🔧 الصيانات</div>
+            <div class="combo-item" onclick="location.href='index3.html'">🚨 المخالفات</div>
+            <div class="combo-item" onclick="location.href='index5.html'">🤝 الموردين</div>
+            <div class="combo-item" onclick="location.href='index6.html'">🏢 موردين الشركات</div>
+            <div class="combo-item" onclick="location.href='index7.html'">📋 الحضور والغياب</div>
+            <div class="combo-item" onclick="location.href='index8.html'">💻 مصاريف المكتب</div>
+        </div>
+      </div>
+  <div class="hclock" id="clk">⏰ --:--</div>
+  <button class="icobtn" id="themeBtn" title="تغيير المظهر" onclick="toggleTheme()">🌙</button>
+  <button class="logoutbtn" onclick="doLogout()">🚪 خروج</button>
+</div>
+</header>
+
+<!-- STATS BAR -->
+<div class="sbar">
+  <div class="chip"><div class="dot" style="background:var(--purple)"></div><div><div class="sn" id="st0">0</div><div class="sl">عدد الموظفين</div></div></div>
+  <div class="chip"><div class="dot" style="background:var(--gold)"></div><div><div class="sn" id="st1">—</div><div class="sl">إجمالي الرواتب</div></div></div>
+  <div class="chip"><div class="dot" style="background:var(--red)"></div><div><div class="sn" id="st2">—</div><div class="sl">إجمالي السلف</div></div></div>
+  <div class="chip"><div class="dot" style="background:var(--orange)"></div><div><div class="sn" id="st3">—</div><div class="sl">إجمالي الخصومات</div></div></div>
+  <div class="chip"><div class="dot" style="background:var(--green)"></div><div><div class="sn" id="st4">—</div><div class="sl">صافي الرواتب الكلي</div></div></div>
+</div>
+
+<div class="abody">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="fhead">
+      <h2 id="ftitle">👤 موظف جديد</h2>
+      <span class="fbadge" id="fbadge">جديد</span>
+    </div>
+
+    <div class="sec">👤 بيانات الموظف</div>
+    <div class="fg">
+      <label>اسم الموظف <span class="req">*</span></label>
+      <input class="fi" id="f_name" placeholder="الاسم الكامل">
+    </div>
+    <div class="fg">
+      <label>المرتب الأساسي <span class="req">*</span></label>
+      <input class="fi" id="f_salary" type="number" min="0" placeholder="0 ج.م" oninput="calcNet()">
+    </div>
+
+    <!-- LOANS -->
+    <div class="sec">💸 السلف</div>
+    <div class="loans-wrap">
+      <div class="loans-list" id="loansList"></div>
+      <button class="add-loan-btn" onclick="addLoanRow()">＋ إضافة سلفة</button>
+      <div class="loans-total">إجمالي السلف: <span id="loansTotal">0</span> ج.م</div>
+    </div>
+
+    <!-- DEDUCTION -->
+    <div class="sec">✂️ الخصم من المرتب <span style="color:var(--mu);font-weight:400;font-size:10px">(اختياري)</span></div>
+    <div class="fg">
+      <label>مبلغ الخصم</label>
+      <input class="fi" id="f_deduct" type="number" min="0" placeholder="0 ج.م" oninput="calcNet()">
+    </div>
+    <div class="fg">
+      <label>سبب الخصم</label>
+      <input class="fi" id="f_dreason" placeholder="مثال: غياب يوم، مشكلة...">
+    </div>
+
+    <!-- NET -->
+    <div class="fg" style="margin-top:4px">
+      <label style="color:var(--green);font-weight:900">💰 صافي المرتب</label>
+      <input class="fi fi-net" id="f_net" readonly placeholder="0 ج.م">
+    </div>
+
+    <button class="sbtn add" id="submitBtn" onclick="save()">✅ حفظ الموظف</button>
+    <button class="cbtn" id="cancelBtn" onclick="cancelEdit()">✕ إلغاء التعديل</button>
+
+    <div class="sactions">
+      <button class="abtn g" onclick="exportExcel()">📊 Excel</button>
+      <button class="abtn o" onclick="exportJSON()">💾 JSON</button>
+      <button class="abtn b" onclick="document.getElementById('importFile').click()">📂 استيراد</button>
+      <button class="abtn r full" onclick="openDelAll()">🗑️ حذف الكل</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="toolbar">
+      <div class="tl">
+        <h3>👥 قائمة الموظفين</h3>
+        <p id="tblSub">0 موظف</p>
+      </div>
+      <div class="tr2">
+        <div class="sbox">
+          <input id="srch" placeholder="بحث بالاسم..." oninput="render()">
+          <span class="si">🔍</span>
+        </div>
+      </div>
+    </div>
+    <div id="cardsWrap"></div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="ov" id="detailOv">
+  <div class="modal">
+    <div class="mhdr">
+      <h3 id="mTitle">تفاصيل الموظف</h3>
+      <button class="mcls" onclick="closeModal()">✕</button>
+    </div>
+    <div class="mbody" id="mBody"></div>
+    <div class="mftr">
+      <button class="mb-e" onclick="editFromModal()">✏️ تعديل</button>
+      <button class="mb-p" onclick="printFromModal()">🖨️ طباعة</button>
+      <button class="mb-d" onclick="delFromModal()">🗑️ حذف</button>
+      <button class="mb-c" onclick="closeModal()">✕ إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE ALL -->
+<div class="cdlg" id="delAllDlg">
+  <div class="cbox">
+    <div class="ci">⚠️</div>
+    <h3>حذف جميع الموظفين</h3>
+    <p>هذا الإجراء لا يمكن التراجع عنه.<br>أدخل كلمة المرور للتأكيد.</p>
+    <input type="password" id="delAllPw" placeholder="كلمة المرور...">
+    <div class="cacts">
+      <button class="cok" onclick="confirmDelAll()">حذف الكل</button>
+      <button class="cno" onclick="closeDelAll()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"><span id="tmsg"></span><div class="tbar"></div></div>
+
+<script>
+  // أضف هذا في أول الـ <script> (قبل أي كود)
+if(sessionStorage.getItem("tcAuth") !== "1"){
+  location.href = "index.html"; // يرجع لصفحة الدخول لو مش مسجل
+}
+// دالة تسجيل الخروج
+function doLogout(){
+  sessionStorage.removeItem("tcAuth");
+  location.href = "index.html";
+}
+// دالة فتح/قفل القائمة
+function toggleCombo(){
+  document.getElementById("comboMenu").classList.toggle("open");
+}
+function closeCombo(){
+  document.getElementById("comboMenu").classList.remove("open");
+}
+// إغلاق القائمة عند الضغط خارجها
+document.addEventListener("click", function(e){
+  if(!e.target.closest(".combo-wrap")) closeCombo();
+});
+// إغلاق بزر Escape
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape") closeCombo();
+});
+const PASS   = "tarektrend54";
+const DB_KEY = "trendcar_employees_v1";
+
+let DB       = JSON.parse(localStorage.getItem(DB_KEY) || "[]");
+let editIdx  = null;
+let curModal = null;
+
+/* ══ THEME ══ */
+const savedTheme = localStorage.getItem("trendTheme") || "dark";
+if(savedTheme === "light") document.body.classList.add("light");
+function toggleTheme(){
+  document.body.classList.toggle("light");
+  const isLight = document.body.classList.contains("light");
+  localStorage.setItem("trendTheme", isLight ? "light" : "dark");
+  document.getElementById("themeBtn").textContent = isLight ? "☀️" : "🌙";
+}
+document.getElementById("themeBtn").textContent = savedTheme === "light" ? "☀️" : "🌙";
+
+/* ══ CLOCK ══ */
+setInterval(()=>{
+  document.getElementById("clk").textContent = "⏰ " + new Date().toLocaleTimeString("ar-EG");
+}, 1000);
+
+/* ══ STORAGE ══ */
+function saveDB(){ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
+
+/* ══ TOAST ══ */
+let toastT;
+function toast(msg, sound=false){
+  if(sound){ const a=document.getElementById("alertSound"); a.currentTime=0; a.play().catch(()=>{}); }
+  const el = document.getElementById("toast");
+  document.getElementById("tmsg").textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastT);
+  toastT = setTimeout(()=>el.classList.remove("show"), 3500);
+}
+
+/* ══ HELPERS ══ */
+function numFmt(n){ return Number(n||0).toLocaleString("ar-EG"); }
+function dtFmt(d){ if(!d) return "—"; return new Date(d+"T00:00:00").toLocaleDateString("ar-EG",{year:"numeric",month:"short",day:"numeric"}); }
+function nextId(){
+  if(!DB.length) return "EMP-001";
+  const mx = Math.max(...DB.map(b=>parseInt((b.id||"EMP-000").replace("EMP-",""))||0));
+  return "EMP-" + String(mx+1).padStart(3,"0");
+}
+
+/* ══ LOAN ROWS ══ */
+function addLoanRow(amount="", date=""){
+  const list = document.getElementById("loansList");
+  const row  = document.createElement("div");
+  row.className = "loan-row";
+  row.innerHTML = `
+    <input type="number" min="0" placeholder="المبلغ ج.م" value="${amount}" oninput="updateLoansTotal()">
+    <input type="date" value="${date}" oninput="updateLoansTotal()">
+    <button class="loan-del" onclick="this.parentElement.remove();updateLoansTotal()" title="حذف">🗑️</button>`;
+  list.appendChild(row);
+  updateLoansTotal();
+}
+
+function getLoans(){
+  const rows = document.querySelectorAll("#loansList .loan-row");
+  return Array.from(rows).map(r=>{
+    const inputs = r.querySelectorAll("input");
+    return { amount: parseFloat(inputs[0].value)||0, date: inputs[1].value };
+  }).filter(l=>l.amount > 0);
+}
+
+function updateLoansTotal(){
+  const total = getLoans().reduce((s,l)=>s+l.amount, 0);
+  document.getElementById("loansTotal").textContent = numFmt(total);
+  calcNet();
+}
+
+function calcNet(){
+  const salary  = parseFloat(document.getElementById("f_salary").value) || 0;
+  const loans   = getLoans().reduce((s,l)=>s+l.amount, 0);
+  const deduct  = parseFloat(document.getElementById("f_deduct").value) || 0;
+  const net     = salary - loans - deduct;
+  document.getElementById("f_net").value = numFmt(net >= 0 ? net : 0) + " ج.م";
+}
+
+/* ══ SAVE ══ */
+function save(){
+  const name   = document.getElementById("f_name").value.trim();
+  const salary = parseFloat(document.getElementById("f_salary").value) || 0;
+  if(!name)  { toast("⚠️ اسم الموظف مطلوب"); return; }
+  if(!salary){ toast("⚠️ المرتب الأساسي مطلوب"); return; }
+
+  const loans   = getLoans();
+  const deduct  = parseFloat(document.getElementById("f_deduct").value) || 0;
+  const dreason = document.getElementById("f_dreason").value.trim();
+  const totalLoans = loans.reduce((s,l)=>s+l.amount, 0);
+  const net = Math.max(0, salary - totalLoans - deduct);
+
+  const rec = {
+    id:      editIdx !== null ? DB[editIdx].id : nextId(),
+    name, salary, loans, deduct, dreason, net,
+    at:      editIdx !== null ? DB[editIdx].at : new Date().toISOString()
+  };
+
+  if(editIdx !== null){
+    DB[editIdx] = rec;
+    toast("✅ تم تحديث بيانات الموظف", true);
+    editIdx = null;
+  } else {
+    DB.push(rec);
+    toast("✅ تم إضافة الموظف", true);
+  }
+  saveDB(); clearForm(); renderAll();
+}
+
+/* ══ CLEAR FORM ══ */
+function clearForm(){
+  document.getElementById("f_name").value    = "";
+  document.getElementById("f_salary").value  = "";
+  document.getElementById("f_deduct").value  = "";
+  document.getElementById("f_dreason").value = "";
+  document.getElementById("f_net").value     = "";
+  document.getElementById("loansList").innerHTML = "";
+  document.getElementById("loansTotal").textContent = "0";
+  editIdx = null;
+  const sb = document.getElementById("submitBtn");
+  sb.textContent = "✅ حفظ الموظف"; sb.className = "sbtn add";
+  document.getElementById("cancelBtn").style.display = "none";
+  document.getElementById("ftitle").textContent = "👤 موظف جديد";
+  document.getElementById("fbadge").textContent = "جديد";
+}
+function cancelEdit(){ clearForm(); toast("تم إلغاء التعديل"); }
+
+/* ══ RENDER ══ */
+function renderAll(){ renderStats(); render(); }
+
+function renderStats(){
+  const t    = DB.length;
+  const sal  = DB.reduce((s,b)=>s+(b.salary||0), 0);
+  const loans= DB.reduce((s,b)=>s+((b.loans||[]).reduce((ss,l)=>ss+l.amount,0)), 0);
+  const ded  = DB.reduce((s,b)=>s+(b.deduct||0), 0);
+  const net  = DB.reduce((s,b)=>s+(b.net||0), 0);
+  document.getElementById("st0").textContent = t;
+  document.getElementById("st1").textContent = numFmt(sal)+" ج.م";
+  document.getElementById("st2").textContent = numFmt(loans)+" ج.م";
+  document.getElementById("st3").textContent = numFmt(ded)+" ج.م";
+  document.getElementById("st4").textContent = numFmt(net)+" ج.م";
+}
+
+function render(){
+  const q = document.getElementById("srch").value.trim().toLowerCase();
+  let list = DB.map((b,i)=>({...b,_i:i}));
+  if(q) list = list.filter(b=>(b.name||"").toLowerCase().includes(q)||(b.id||"").includes(q));
+  document.getElementById("tblSub").textContent = `${list.length} موظف`;
+  const wrap = document.getElementById("cardsWrap");
+  if(!list.length){
+    wrap.innerHTML = `<div class="empty-state"><div class="ei">👥</div><h3>لا يوجد موظفون</h3><p>أضف موظفاً جديداً من النموذج</p></div>`;
+    return;
+  }
+  const totalLoans = b => (b.loans||[]).reduce((s,l)=>s+l.amount,0);
+  wrap.innerHTML = `<div class="cards">${list.map(b=>`
+    <div class="ecard" onclick="openModal(${b._i})">
+      <div class="ecard-top">
+        <div>
+          <div class="ecard-name">👤 ${b.name}</div>
+          <div class="ecard-id">${b.id}</div>
+        </div>
+      </div>
+      <div class="ecard-salary">المرتب الأساسي: <strong>${numFmt(b.salary)} ج.م</strong></div>
+      <div class="ecard-bars">
+        <div class="ebar"><span class="el">💸 إجمالي السلف</span><span class="ev" style="color:var(--red)">${numFmt(totalLoans(b))} ج.م</span></div>
+        ${(b.loans||[]).map(l=>`<div class="ebar" style="padding-right:14px"><span class="el" style="color:var(--mu2)">↳ ${dtFmt(l.date)||"بدون تاريخ"}</span><span class="ev" style="color:var(--mu);font-size:11px">${numFmt(l.amount)} ج.م</span></div>`).join("")}
+        ${b.deduct?`<div class="ebar"><span class="el">✂️ الخصم${b.dreason?" ("+b.dreason+")":""}</span><span class="ev" style="color:var(--orange)">${numFmt(b.deduct)} ج.م</span></div>`:""}
+      </div>
+      <div class="ecard-net">
+        <span class="nl">💰 صافي المرتب</span>
+        <span class="nv">${numFmt(b.net)} ج.م</span>
+      </div>
+      <div class="ecard-actions" onclick="event.stopPropagation()">
+        <button class="eca e" onclick="editEmp(${b._i})">✏️ تعديل</button>
+        <button class="eca p" onclick="openModal(${b._i})">📋 تفاصيل</button>
+        <button class="eca d" onclick="delEmp(${b._i})">🗑️ حذف</button>
+      </div>
+    </div>`).join("")}</div>`;
+}
+
+/* ══ MODAL ══ */
+function openModal(idx){
+  curModal = idx;
+  const b = DB[idx];
+  const totalLoans = (b.loans||[]).reduce((s,l)=>s+l.amount,0);
+  document.getElementById("mTitle").textContent = `${b.name} — ${b.id}`;
+  document.getElementById("mBody").innerHTML = `
+    <div class="net-block">
+      <div class="nb-label">💰 صافي المرتب</div>
+      <div class="nb-val">${numFmt(b.net)} ج.م</div>
+      <div class="nb-eq">${numFmt(b.salary)} - ${numFmt(totalLoans)} - ${numFmt(b.deduct||0)} = ${numFmt(b.net)} ج.م</div>
+    </div>
+    <div class="dgrid">
+      <div class="di"><div class="dl">رقم الموظف</div><div class="dv" style="color:var(--purple)">${b.id}</div></div>
+      <div class="di"><div class="dl">الاسم</div><div class="dv">👤 ${b.name}</div></div>
+      <div class="di"><div class="dl">المرتب الأساسي</div><div class="dv" style="color:var(--gold);font-size:15px">${numFmt(b.salary)} ج.م</div></div>
+      <div class="di"><div class="dl">إجمالي السلف</div><div class="dv" style="color:var(--red)">${numFmt(totalLoans)} ج.م</div></div>
+      ${b.deduct?`<div class="di"><div class="dl">الخصم${b.dreason?" — "+b.dreason:""}</div><div class="dv" style="color:var(--orange)">${numFmt(b.deduct)} ج.م</div></div>`:""}
+    </div>
+    ${(b.loans||[]).length?`
+    <div class="loans-detail">
+      <div class="ldh">💸 تفاصيل السلف (${b.loans.length} سلفة)</div>
+      ${b.loans.map((l,i)=>`<div class="loan-item"><span>سلفة #${i+1} ${l.date?`— <span class="li-date">${dtFmt(l.date)}</span>`:""}</span><span class="li-amt">${numFmt(l.amount)} ج.م</span></div>`).join("")}
+    </div>`:""}`;
+  document.getElementById("detailOv").classList.add("open");
+}
+function closeModal(){ document.getElementById("detailOv").classList.remove("open"); }
+function editFromModal(){ if(curModal===null)return; closeModal(); editEmp(curModal); }
+function delFromModal() { if(curModal===null)return; closeModal(); delEmp(curModal); }
+
+/* ══ EDIT / DELETE ══ */
+function editEmp(idx){
+  const b = DB[idx];
+  document.getElementById("f_name").value    = b.name;
+  document.getElementById("f_salary").value  = b.salary||"";
+  document.getElementById("f_deduct").value  = b.deduct||"";
+  document.getElementById("f_dreason").value = b.dreason||"";
+  document.getElementById("loansList").innerHTML = "";
+  (b.loans||[]).forEach(l=>addLoanRow(l.amount, l.date));
+  updateLoansTotal();
+  editIdx = idx;
+  const sb = document.getElementById("submitBtn");
+  sb.textContent = "💾 حفظ التعديلات"; sb.className = "sbtn save";
+  document.getElementById("cancelBtn").style.display = "block";
+  document.getElementById("ftitle").textContent = "✏️ تعديل الموظف";
+  document.getElementById("fbadge").textContent = "تعديل";
+  document.querySelector(".sidebar").scrollTop = 0;
+}
+
+function delEmp(idx){
+  if(!confirm(`حذف موظف "${DB[idx].name}"؟`)) return;
+  DB.splice(idx,1);
+  saveDB(); renderAll();
+  toast("🗑️ تم حذف الموظف");
+  if(editIdx===idx) clearForm();
+}
+
+/* ══ DELETE ALL ══ */
+function openDelAll(){ document.getElementById("delAllPw").value=""; document.getElementById("delAllDlg").classList.add("open"); }
+function closeDelAll(){ document.getElementById("delAllDlg").classList.remove("open"); }
+function confirmDelAll(){
+  const pw = document.getElementById("delAllPw").value;
+  if(pw !== PASS){
+    toast("❌ كلمة المرور غلط");
+    closeDelAll();
+    setTimeout(()=>location.reload(), 1200);
+    return;
+  }
+  DB=[]; saveDB(); renderAll(); closeDelAll();
+  toast("🗑️ تم حذف جميع البيانات");
+}
+
+/* ══ PRINT ══ */
+function printFromModal(){
+  const b = DB[curModal]; if(!b) return;
+  const totalLoans = (b.loans||[]).reduce((s,l)=>s+l.amount,0);
+  const w = window.open("","_blank","width=720,height=900");
+  w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head>
+<meta charset="UTF-8"><title>راتب ${b.name}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+body{font-family:'Cairo',sans-serif;padding:28px;color:#111;background:#fff;max-width:680px;margin:0 auto}
+.logo{font-size:14px;font-weight:900;color:#555;margin-bottom:2px}
+h1{font-size:20px;border-bottom:2px solid #7c3aed;padding-bottom:9px;margin:14px 0 18px;color:#7c3aed}
+table{width:100%;border-collapse:collapse;margin-bottom:14px}
+td{padding:8px 11px;border:1px solid #ddd;font-size:13px}
+td:first-child{font-weight:700;background:#f5f5f5;width:38%}
+.net{background:#f0fdf4;border:2px solid #16a34a;border-radius:8px;padding:14px;text-align:center;margin-top:16px}
+.net-val{font-size:24px;font-weight:900;color:#16a34a}
+.net-label{font-size:12px;color:#666;margin-bottom:4px}
+.loans-sub{font-size:12px;color:#888;padding:4px 8px;border-bottom:1px solid #eee}
+.footer{margin-top:28px;font-size:11px;color:#999;text-align:center;border-top:1px solid #eee;padding-top:10px}
+</style></head><body>
+<div class="logo">🚗 Trend Car Rental — نظام إدارة الرواتب</div>
+<h1>كشف راتب — ${b.name}</h1>
+<table>
+<tr><td>رقم الموظف</td><td>${b.id}</td></tr>
+<tr><td>اسم الموظف</td><td>${b.name}</td></tr>
+<tr><td>المرتب الأساسي</td><td><strong>${numFmt(b.salary)} ج.م</strong></td></tr>
+</table>
+${(b.loans||[]).length?`
+<table>
+<tr style="background:#fef2f2"><td colspan="2" style="color:#dc2626;font-weight:900">السلف (${b.loans.length} سلفة — إجمالي: ${numFmt(totalLoans)} ج.م)</td></tr>
+${b.loans.map((l,i)=>`<tr><td>سلفة #${i+1}${l.date?" — "+new Date(l.date+"T00:00:00").toLocaleDateString("ar-EG"):""}</td><td>${numFmt(l.amount)} ج.م</td></tr>`).join("")}
+</table>`:""}
+${b.deduct?`<table><tr><td>الخصم${b.dreason?" ("+b.dreason+")":""}</td><td style="color:#ea580c"><strong>${numFmt(b.deduct)} ج.م</strong></td></tr></table>`:""}
+<div class="net">
+<div class="net-label">💰 صافي المرتب = ${numFmt(b.salary)} - ${numFmt(totalLoans)} - ${numFmt(b.deduct||0)}</div>
+<div class="net-val">${numFmt(b.net)} ج.م</div>
+</div>
+<div class="footer">صدر بواسطة نظام Trend Car Rental — ${new Date().toLocaleDateString("ar-EG")}</div>
+<script>window.onload=()=>window.print()<\/script>
+</body></html>`);
+  w.document.close();
+}
+
+/* ══ EXPORT ══ */
+function exportExcel(){
+  if(!DB.length){ toast("لا توجد بيانات"); return; }
+  const rows = DB.map(b=>{
+    const tl = (b.loans||[]).reduce((s,l)=>s+l.amount,0);
+    return {
+      "رقم الموظف":b.id,"اسم الموظف":b.name,
+      "المرتب الأساسي":b.salary,
+      "عدد السلف":(b.loans||[]).length,
+      "إجمالي السلف":tl,
+      "الخصم":b.deduct||0,"سبب الخصم":b.dreason||"",
+      "صافي المرتب":b.net
+    };
+  });
+  const ws=XLSX.utils.json_to_sheet(rows);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"الموظفين");
+  XLSX.writeFile(wb,`trend_employees_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast("📊 تم تصدير Excel");
+}
+function exportJSON(){
+  if(!DB.length){ toast("لا توجد بيانات"); return; }
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(DB,null,2)],{type:"application/json"}));
+  a.download=`trend_employees_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  toast("💾 تم تصدير JSON");
+}
+function importJSON(inp){
+  const f=inp.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!Array.isArray(data)) throw new Error();
+      if(!confirm(`استيراد ${data.length} موظف؟`)) return;
+      const existIds=new Set(DB.map(b=>b.id));
+      let added=0;
+      data.forEach(b=>{ if(!existIds.has(b.id)){ DB.push(b); added++; } });
+      saveDB(); renderAll();
+      toast(`✅ تم استيراد ${added} موظف جديد`);
+    } catch(e){ toast("❌ ملف JSON غلط"); }
+  };
+  r.readAsText(f);
+  inp.value="";
+}
+
+/* ══ INIT ══ */
+renderAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trend Car Rental — الحجوزات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<audio id="alertSound" src="das.mp3" preload="auto"></audio>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+/* ══ TOKENS ══ */
+:root{
+  --bg:#07090e;--s1:#0d1018;--s2:#131720;--s3:#191f2a;
+  --br:#1d2436;--br2:#273050;
+  --gold:#c8973a;--gold2:#e8b55a;
+  --blue:#3b82f6;--green:#22c55e;--red:#ef4444;--orange:#f59e0b;--purple:#a855f7;
+  --tx:#edf0f7;--mu:#7a8599;--mu2:#44526a;
+  --r:10px;--rl:16px;
+  --sh:0 4px 24px rgba(0,0,0,.55);--shl:0 16px 56px rgba(0,0,0,.8);
+  --tr:.18s cubic-bezier(.4,0,.2,1);
+}
+body.light{
+  --bg:#f0f2f7;--s1:#ffffff;--s2:#f5f7fb;--s3:#eaecf4;
+  --br:#d1d8e8;--br2:#bcc6da;
+  --tx:#1a2035;--mu:#5a6a8a;--mu2:#8a9ab8;
+  --sh:0 4px 16px rgba(0,0,0,.08);--shl:0 12px 40px rgba(0,0,0,.14);
+}
+
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--s1)}
+::-webkit-scrollbar-thumb{background:var(--br2);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--gold)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ TOAST ══ */
+#toast{position:fixed;top:22px;left:50%;transform:translateX(-50%) translateY(-90px);background:var(--s2);border:1px solid var(--br2);color:var(--tx);padding:12px 28px;border-radius:50px;font-size:14px;font-weight:700;z-index:99999;box-shadow:var(--shl);transition:transform .38s cubic-bezier(.34,1.56,.64,1),opacity .38s;opacity:0;pointer-events:none;display:flex;align-items:center;gap:10px;max-width:90vw;white-space:nowrap}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast .tbar{position:absolute;bottom:0;left:0;height:3px;width:100%;background:linear-gradient(90deg,var(--gold),var(--blue));border-radius:0 0 50px 50px;animation:tbarA 3.5s linear forwards}
+@keyframes tbarA{from{width:100%}to{width:0}}
+
+/* ══ LOGIN ══ */
+#loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+#loginPage::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 90% 70% at 25% 85%,rgba(200,151,58,.07),transparent 55%),radial-gradient(ellipse 65% 85% at 78% 12%,rgba(59,130,246,.05),transparent 55%)}
+.lgrid{position:absolute;inset:0;background-image:linear-gradient(var(--br) 1px,transparent 1px),linear-gradient(90deg,var(--br) 1px,transparent 1px);background-size:52px 52px;opacity:.3;mask-image:radial-gradient(ellipse 60% 60% at 50% 50%,black 20%,transparent 100%)}
+.lcard{position:relative;z-index:2;width:430px;max-width:calc(100vw - 32px);background:var(--s1);border:1px solid var(--br2);border-radius:24px;padding:44px 40px;box-shadow:var(--shl);animation:fadeUp .5s ease}
+.llogo{text-align:center;margin-bottom:28px}
+.llogo img{height:66px;object-fit:contain;filter:drop-shadow(0 4px 14px rgba(200,151,58,.3))}
+.llogo .licon{font-size:52px;display:none}
+.llogo h1{font-size:20px;font-weight:900;margin-top:14px;background:linear-gradient(135deg,var(--gold2),var(--tx));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.llogo p{font-size:12px;color:var(--mu);margin-top:5px}
+.lf{margin-bottom:14px}
+.lf label{display:block;font-size:11px;font-weight:700;color:var(--mu);margin-bottom:6px;letter-spacing:.5px}
+.lf input{width:100%;padding:13px 16px;background:var(--s2);border:1.5px solid var(--br);border-radius:var(--r);color:var(--tx);font-family:inherit;font-size:14px;transition:var(--tr);text-align:right}
+.lf input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,151,58,.12)}
+.lbtn{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold),#9a6e20);border:none;border-radius:var(--r);color:#07090e;font-family:inherit;font-size:15px;font-weight:900;cursor:pointer;margin-top:8px;box-shadow:0 4px 20px rgba(200,151,58,.28);transition:var(--tr)}
+.lbtn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(200,151,58,.42)}
+#loginErr{color:var(--red);font-size:13px;text-align:center;margin-top:10px;font-weight:700;min-height:18px}
+
+/* ══ APP ══ */
+#app{display:none}
+
+/* ══ HEADER ══ */
+.hdr{height:62px;background:var(--s1);border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.hbrand{display:flex;align-items:center;gap:12px}
+.hbrand img{height:36px;object-fit:contain}
+.hbrand .hicon{font-size:26px;display:none}
+.htitle{font-size:14px;font-weight:900;border-right:1px solid var(--br);padding-right:12px}
+.hsub{font-size:11px;color:var(--gold);font-weight:700}
+.hright{display:flex;align-items:center;gap:7px}
+.hclock{font-size:12px;color:var(--mu);background:var(--s2);border:1px solid var(--br);padding:5px 12px;border-radius:50px;font-weight:600}
+.icobtn{width:36px;height:36px;background:var(--s2);border:1px solid var(--br);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:var(--tr);color:var(--mu)}
+.icobtn:hover{border-color:var(--br2);background:var(--s3);color:var(--tx)}
+.logoutbtn{padding:7px 13px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:8px;color:var(--red);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:var(--tr);display:flex;align-items:center;gap:5px}
+.logoutbtn:hover{background:rgba(239,68,68,.2);border-color:var(--red)}
+
+/* ══ STATS BAR ══ */
+.sbar{background:var(--s1);border-bottom:1px solid var(--br);padding:9px 18px;display:flex;gap:7px;overflow-x:auto;scrollbar-width:none}
+.sbar::-webkit-scrollbar{display:none}
+.chip{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--br);border-radius:50px;padding:6px 15px;white-space:nowrap;flex-shrink:0;transition:var(--tr)}
+.chip .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.chip .sn{font-size:18px;font-weight:900}
+.chip .sl{font-size:11px;color:var(--mu);font-weight:600}
+
+/* ══ BODY LAYOUT ══ */
+.abody{display:grid;grid-template-columns:360px 1fr;min-height:calc(100vh - 108px)}
+
+/* ══ SIDEBAR ══ */
+.sidebar{background:var(--s1);border-left:1px solid var(--br);padding:15px;overflow-y:auto;position:sticky;top:62px;max-height:calc(100vh - 108px)}
+.fhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;padding-bottom:11px;border-bottom:1px solid var(--br)}
+.fhead h2{font-size:14px;font-weight:900;display:flex;align-items:center;gap:7px}
+.fbadge{font-size:10px;color:var(--mu);background:var(--s2);padding:3px 9px;border-radius:50px;border:1px solid var(--br)}
+.sec{font-size:10px;font-weight:700;color:var(--mu2);text-transform:uppercase;letter-spacing:.8px;margin:12px 0 7px;padding-bottom:4px;border-bottom:1px solid var(--br)}
+.fg{margin-bottom:9px}
+.fg label{display:block;font-size:11px;font-weight:700;color:var(--mu);margin-bottom:4px}
+.fg label .req{color:var(--red);margin-right:2px}
+.fi{width:100%;padding:9px 11px;background:var(--s2);border:1.5px solid var(--br);border-radius:var(--r);color:var(--tx);font-family:inherit;font-size:13px;transition:var(--tr);text-align:right;display:block}
+.fi:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,151,58,.1)}
+select.fi option{background:var(--s2);color:var(--tx)}
+.fsel option{background:var(--s2);color:var(--tx)}
+textarea.fi{resize:vertical;min-height:56px}
+.firow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fi-ro{background:var(--s3);color:var(--gold);font-weight:700;cursor:default}
+.fi-ro:focus{border-color:var(--br);box-shadow:none}
+.fi-green{background:var(--s3);color:var(--green);font-weight:900;cursor:default}
+.fi-green:focus{border-color:var(--br);box-shadow:none}
+.fi-red{background:var(--s3);color:var(--red);font-weight:900;cursor:default}
+.fi-red:focus{border-color:var(--br);box-shadow:none}
+
+/* car image upload */
+.img-upload{border:1.5px dashed var(--br2);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;transition:var(--tr);background:var(--s2);position:relative;overflow:hidden}
+.img-upload:hover{border-color:var(--gold);background:rgba(200,151,58,.04)}
+.img-upload input{display:none}
+.img-upload .iup-label{font-size:12px;color:var(--mu);font-weight:600}
+.img-upload .iup-icon{font-size:22px;margin-bottom:3px}
+#carImgPreview{width:100%;max-height:100px;object-fit:cover;border-radius:7px;margin-top:8px;display:none;border:1px solid var(--br)}
+
+.sbtn{width:100%;padding:12px;border:none;border-radius:var(--r);font-family:inherit;font-size:14px;font-weight:900;cursor:pointer;transition:var(--tr);margin-top:7px}
+.sbtn.add{background:linear-gradient(135deg,var(--green),#166534);color:#fff;box-shadow:0 4px 16px rgba(34,197,94,.2)}
+.sbtn.add:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(34,197,94,.35)}
+.sbtn.save{background:linear-gradient(135deg,var(--blue),#1d4ed8);color:#fff;box-shadow:0 4px 16px rgba(59,130,246,.2)}
+.sbtn.save:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(59,130,246,.35)}
+.cbtn{width:100%;padding:8px;background:transparent;border:1px solid var(--br2);border-radius:var(--r);color:var(--mu);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:var(--tr);margin-top:4px;display:none}
+.cbtn:hover{border-color:var(--red);color:var(--red)}
+
+.sactions{margin-top:12px;padding-top:12px;border-top:1px solid var(--br);display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.abtn{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border:1px solid var(--br);border-radius:var(--r);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;transition:var(--tr);background:var(--s2);color:var(--tx)}
+.abtn:hover{border-color:var(--br2);background:var(--s3)}
+.abtn.g{border-color:rgba(34,197,94,.3);color:#4ade80}.abtn.g:hover{background:rgba(34,197,94,.08);border-color:var(--green)}
+.abtn.b{border-color:rgba(59,130,246,.3);color:#60a5fa}.abtn.b:hover{background:rgba(59,130,246,.08);border-color:var(--blue)}
+.abtn.o{border-color:rgba(245,158,11,.3);color:#fbbf24}.abtn.o:hover{background:rgba(245,158,11,.08);border-color:var(--orange)}
+.abtn.r{border-color:rgba(239,68,68,.3);color:#f87171}.abtn.r:hover{background:rgba(239,68,68,.08);border-color:var(--red)}
+.abtn.full{grid-column:1/-1}
+
+/* ══ MAIN ══ */
+.main{padding:16px;overflow-y:auto}
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:9px}
+.tl h3{font-size:16px;font-weight:900}
+.tl p{font-size:12px;color:var(--mu);margin-top:1px}
+.tr{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.sbox{position:relative}
+.sbox input{padding:8px 36px 8px 12px;background:var(--s2);border:1.5px solid var(--br);border-radius:50px;color:var(--tx);font-family:inherit;font-size:13px;transition:var(--tr);text-align:right;width:200px}
+.sbox input:focus{outline:none;border-color:var(--gold);background:var(--s1)}
+.sbox .si{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--mu);font-size:12px;pointer-events:none}
+.fsel{padding:8px 11px;background:var(--s2);border:1.5px solid var(--br);border-radius:50px;color:var(--tx);font-family:inherit;font-size:12px;cursor:pointer;font-weight:700}
+.fsel:focus{outline:none;border-color:var(--gold)}
+
+/* ══ TABLE ══ */
+.twrap{background:var(--s1);border:1px solid var(--br);border-radius:var(--rl);overflow:hidden}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl thead tr{background:var(--s2);border-bottom:2px solid var(--br2)}
+.tbl th{padding:11px 12px;text-align:right;font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--br);vertical-align:middle}
+.tbl tbody tr{transition:var(--tr);cursor:pointer}
+.tbl tbody tr:hover{background:var(--s2)}
+.tbl tbody tr:last-child td{border-bottom:none}
+.tbl tbody tr.late-row{background:rgba(239,68,68,.04)}
+.tbl tbody tr.late-row:hover{background:rgba(239,68,68,.09)}
+.rid{font-size:11px;font-weight:900;color:var(--gold);font-family:monospace;white-space:nowrap}
+.ra{display:flex;gap:4px}
+.rab{width:27px;height:27px;border-radius:6px;border:1px solid var(--br);background:var(--s2);color:var(--mu);font-size:11px;cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center}
+.rab:hover.edt{border-color:var(--blue);color:var(--blue);background:rgba(59,130,246,.1)}
+.rab:hover.dlt{border-color:var(--red);color:var(--red);background:rgba(239,68,68,.1)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--mu)}
+.empty-state .ei{font-size:42px;margin-bottom:11px;opacity:.4}
+.empty-state h3{font-size:15px;font-weight:900;color:var(--tx);margin-bottom:5px}
+
+/* ══ STATUS BADGES ══ */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:50px;white-space:nowrap}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.b-active{background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.2)}
+.b-done{background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.2)}
+.b-cancel{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2)}
+.b-pending{background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.2)}
+.b-late{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.4);animation:pulse 2s ease infinite}
+
+/* ══ MODAL ══ */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;z-index:1000;padding:18px}
+.ov.open{display:flex}
+.modal{background:var(--s1);border:1px solid var(--br2);border-radius:20px;width:600px;max-width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shl);animation:fadeUp .28s ease}
+.mhdr{display:flex;align-items:center;justify-content:space-between;padding:17px 20px 13px;border-bottom:1px solid var(--br);position:sticky;top:0;background:var(--s1);z-index:2}
+.mhdr h3{font-size:15px;font-weight:900}
+.mcls{width:28px;height:28px;border-radius:50%;background:var(--s2);border:1px solid var(--br);color:var(--mu);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.mcls:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.mbody{padding:17px 20px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.di{background:var(--s2);border:1px solid var(--br);border-radius:8px;padding:8px 11px}
+.di .dl{font-size:10px;color:var(--mu);letter-spacing:.5px;margin-bottom:3px;font-weight:700;text-transform:uppercase}
+.di .dv{font-size:13px;font-weight:700}
+.di.full{grid-column:1/-1}
+.di.gold{background:rgba(200,151,58,.06);border-color:rgba(200,151,58,.2)}
+.mftr{display:flex;gap:7px;padding:12px 20px 16px;border-top:1px solid var(--br);flex-wrap:wrap}
+.mftr button{flex:1;min-width:80px;padding:9px;border-radius:var(--r);font-family:inherit;font-size:12px;font-weight:900;cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;gap:5px}
+.mb-e{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:#fbbf24}.mb-e:hover{background:rgba(245,158,11,.2)}
+.mb-p{background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.25);color:#c084fc}.mb-p:hover{background:rgba(168,85,247,.2)}
+.mb-d{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171}.mb-d:hover{background:rgba(239,68,68,.2)}
+.mb-c{background:var(--s2);border:1px solid var(--br);color:var(--mu)}.mb-c:hover{border-color:var(--br2);color:var(--tx)}
+
+/* ══ CONFIRM DIALOGS ══ */
+.cdlg{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;z-index:9999}
+.cdlg.open{display:flex}
+.cbox{background:var(--s1);border-radius:20px;padding:32px;width:380px;max-width:calc(100vw - 32px);text-align:center;animation:fadeUp .28s ease}
+.cbox.danger{border:1px solid rgba(239,68,68,.35)}
+.cbox .ci{font-size:42px;margin-bottom:12px}
+.cbox h3{font-size:16px;font-weight:900;margin-bottom:7px}
+.cbox p{font-size:13px;color:var(--mu);margin-bottom:16px;line-height:1.6}
+.cbox input{width:100%;padding:11px;margin-bottom:14px;background:var(--s2);border:1.5px solid var(--br);border-radius:8px;color:var(--tx);font-family:inherit;font-size:14px;text-align:center;transition:var(--tr)}
+.cbox input:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(239,68,68,.1)}
+.cacts{display:flex;gap:8px}
+.cok{flex:1;padding:11px;background:var(--red);border:none;border-radius:9px;color:#fff;font-family:inherit;font-size:13px;font-weight:900;cursor:pointer;transition:var(--tr)}.cok:hover{background:#dc2626}
+.cno{flex:1;padding:11px;background:var(--s2);border:1px solid var(--br2);border-radius:9px;color:var(--mu);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:var(--tr)}.cno:hover{color:var(--tx)}
+
+/* ══ CAR THUMB in table ══ */
+.cthumb{width:38px;height:28px;border-radius:5px;object-fit:cover;border:1px solid var(--br)}
+.cnothumb{width:38px;height:28px;border-radius:5px;background:var(--s3);display:inline-flex;align-items:center;justify-content:center;font-size:14px;color:var(--mu2)}
+
+/* ══ MOBILE ══ */
+@media(max-width:900px){
+  .abody{grid-template-columns:1fr}
+  .sidebar{position:relative;top:0;max-height:none;border-left:none;border-bottom:1px solid var(--br)}
+  .sbox input{width:150px}
+  .hclock{display:none}
+}
+
+@media print{
+  #loginPage,#toast,.hdr,.sbar,.sidebar,.toolbar,.tbl .ra,.ov,.cdlg{display:none!important}
+  .abody{grid-template-columns:1fr}
+  body{background:#fff;color:#000}
+}
+/* ══ COMBO MENU ══ */
+.combo-wrap{position:relative;display:inline-block}
+.combo-btn{width:36px;height:36px;background:var(--s2);border:1px solid var(--br);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:var(--tr);color:var(--mu)}
+.combo-btn:hover{border-color:var(--br2);background:var(--s3);color:var(--tx)}
+.combo-menu{position:absolute;top:42px;left:0;background:var(--s1);border:1px solid var(--br2);border-radius:12px;box-shadow:var(--shl);min-width:140px;overflow:hidden;display:none;z-index:500;animation:fadeUp .18s ease}
+.combo-menu.open{display:block}
+.combo-item{display:flex;align-items:center;gap:9px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;transition:var(--tr);color:var(--tx);white-space:nowrap}
+.combo-item:hover{background:var(--s2)}
+.combo-item:not(:last-child){border-bottom:1px solid var(--br)}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="loginPage">
+  <div class="lgrid"></div>
+  <div class="lcard">
+    <div class="llogo">
+      <img src="trendcar.png" alt="Trend" onerror="this.style.display='none';document.querySelector('.licon').style.display='block'">
+      <div class="licon">🚗</div>
+      <h1>Trend Car Rental</h1>
+      <p>نظام إدارة تأجير السيارات</p>
+    </div>
+    <div class="lf">
+      <label>كلمة المرور</label>
+      <input type="password" id="pwIn" placeholder="أدخل كلمة المرور..." onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="lbtn" onclick="doLogin()">🔑 دخول</button>
+    <div id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app">
+
+  <!-- HEADER -->
+  <header class="hdr">
+    <div class="hbrand">
+      <img src="trendcar.png" alt="Trend" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <div class="hicon">🚗</div>
+      <div>
+        <div class="htitle">Trend Car Rental</div>
+        <div class="hsub">الحجوزات</div>
+      </div>
+    </div>
+    <div class="hright">
+        <div class="combo-wrap">
+            <button class="combo-btn" onclick="toggleCombo()" title="القوائم">☰</button>
+            <div class="combo-menu" id="comboMenu">
+                <div class="combo-item" onclick="location.href='index2.html'">🔧 الصيانات</div>
+                <div class="combo-item" onclick="location.href='index3.html'">🚨 المخالفات</div>
+                <div class="combo-item" onclick="location.href='index4.html'">💰 المرتبات</div>
+                <div class="combo-item" onclick="location.href='index5.html'">🤝 الموردين</div>
+                <div class="combo-item" onclick="location.href='index6.html'">🏢 موردين الشركات</div>
+                <div class="combo-item" onclick="location.href='index7.html'">📋 الحضور والغياب</div>
+                <div class="combo-item" onclick="location.href='index8.html'">💻 مصاريف المكتب</div>
+            </div>
+          </div>
+      <div class="hclock" id="clk">⏰ --:--</div>
+      <button class="icobtn" id="themeBtn" title="تغيير المظهر" onclick="toggleTheme()">🌙</button>
+      <button class="logoutbtn" onclick="doLogout()">🚪 خروج</button>
+    </div>
+  </header>
+
+  <!-- STATS BAR -->
+  <div class="sbar">
+    <div class="chip"><div class="dot" style="background:var(--gold)"></div><div><div class="sn" id="st0">0</div><div class="sl">إجمالي الحجوزات</div></div></div>
+    <div class="chip"><div class="dot" style="background:var(--green)"></div><div><div class="sn" id="st1">0</div><div class="sl">نشطة</div></div></div>
+    <div class="chip"><div class="dot" style="background:var(--red)"></div><div><div class="sn" id="st2">0</div><div class="sl">متأخرة</div></div></div>
+    <div class="chip"><div class="dot" style="background:var(--blue)"></div><div><div class="sn" id="st3">0</div><div class="sl">مكتملة</div></div></div>
+    <div class="chip"><div class="dot" style="background:var(--purple)"></div><div><div class="sn" id="st4">0</div><div class="sl">مع سائق</div></div></div>
+    <div class="chip"><div class="dot" style="background:var(--green)"></div><div><div class="sn" id="st5">—</div><div class="sl">إجمالي الإيرادات</div></div></div>
+    <div class="chip"><div class="dot" style="background:var(--red)"></div><div><div class="sn" id="st6">—</div><div class="sl">إجمالي المتبقي</div></div></div>
+  </div>
+
+  <div class="abody">
+
+    <!-- ══ SIDEBAR / FORM ══ -->
+    <aside class="sidebar">
+      <div class="fhead">
+        <h2 id="ftitle">🆕 حجز جديد</h2>
+        <span class="fbadge" id="fbadge">جديد</span>
+      </div>
+
+      <!-- بيانات العميل -->
+      <div class="sec">👤 بيانات العميل</div>
+      <div class="fg">
+        <label>اسم العميل <span class="req">*</span></label>
+        <input class="fi" id="f_name" placeholder="الاسم الكامل للعميل">
+      </div>
+      <div class="firow">
+        <div class="fg">
+          <label>رقم العميل <span style="color:var(--mu);font-weight:400">(اختياري)</span></label>
+          <input class="fi" id="f_cid" placeholder="رقم الهوية" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        </div>
+        <div class="fg">
+          <label>رقم الجواز <span style="color:var(--mu);font-weight:400">(اختياري)</span></label>
+          <input class="fi" id="f_pass" placeholder="رقم الجواز" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        </div>
+      </div>
+      <div class="fg">
+        <label>بطاقة العميل <span style="color:var(--mu);font-weight:400">(اختياري)</span></label>
+        <input class="fi" id="f_card" placeholder="رقم البطاقة" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      </div>
+
+      <!-- بيانات الإيجار -->
+      <div class="sec">🚗 بيانات الإيجار</div>
+      <div class="fg">
+        <label>نوع السيارة <span class="req">*</span></label>
+        <input class="fi" id="f_car" placeholder="مثال: تويوتا كامري 2024">
+      </div>
+      <div class="fg">
+        <label>صورة السيارة <span style="color:var(--mu);font-weight:400">(اختياري)</span></label>
+        <label class="img-upload" for="f_img">
+          <input type="file" id="f_img" accept="image/*" onchange="previewImg(this)">
+          <div class="iup-icon">🖼️</div>
+          <div class="iup-label">اضغط لرفع صورة</div>
+          <img id="carImgPreview" src="" alt="">
+        </label>
+      </div>
+      <div class="fg">
+        <label>مع سائق؟</label>
+        <select class="fi" id="f_driver" onchange="toggleDriver()">
+          <option value="لا">🚗 بدون سائق</option>
+          <option value="نعم">👨‍✈️ مع سائق</option>
+        </select>
+      </div>
+      <div class="firow" id="driverRow" style="display:none">
+        <div class="fg">
+          <label>اسم السائق <span style="color:var(--mu);font-weight:400">(اختياري)</span></label>
+          <input class="fi" id="f_dname" placeholder="اسم السائق">
+        </div>
+        <div class="fg">
+          <label>تكلفة البنزين</label>
+          <input class="fi" id="f_gas" type="text" inputmode="numeric" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        </div>
+      </div>
+
+      <!-- التواريخ والسعر -->
+      <div class="sec">📅 التواريخ والسعر</div>
+      <div class="firow">
+        <div class="fg">
+          <label>عدد أيام الإيجار <span class="req">*</span></label>
+          <input class="fi" id="f_days" type="text" inputmode="numeric" placeholder="عدد الأيام" oninput="this.value=this.value.replace(/[^0-9]/g,'');calc()">
+        </div>
+        <div class="fg">
+          <label>تاريخ خروج السيارة <span class="req">*</span></label>
+          <input class="fi" type="date" id="f_out" onchange="calc()">
+        </div>
+      </div>
+      <div class="fg">
+        <label>تاريخ دخول السيارة</label>
+        <input class="fi fi-ro" id="f_in" placeholder="يُحسب تلقائياً" readonly>
+      </div>
+      <div class="fg">
+        <label>وقت خروج السيارة</label>
+        <input class="fi" type="time" id="f_time">
+      </div>
+      <div class="fg">
+        <label>سعر الإيجار / يوم <span class="req">*</span></label>
+        <input class="fi" id="f_ppd" type="text" inputmode="numeric" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'');calc()">
+      </div>
+      <div class="firow">
+        <div class="fg">
+          <label>إجمالي الإيجار</label>
+          <input class="fi fi-green" id="f_total" readonly>
+        </div>
+        <div class="fg">
+          <label>المدفوع</label>
+          <input class="fi" id="f_paid" type="text" inputmode="numeric" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'');calcRem()">
+        </div>
+      </div>
+      <div class="fg">
+        <label>المتبقي</label>
+        <input class="fi fi-red" id="f_rem" readonly>
+      </div>
+      <div class="fg">
+        <label>الحالة</label>
+        <select class="fi" id="f_status">
+          <option value="نشط">🟢 نشط</option>
+          <option value="مكتمل">🔵 مكتمل</option>
+          <option value="ملغي">🔴 ملغي</option>
+          <option value="معلق">🟡 معلق</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>صافي دخل المورد</label>
+        <input class="fi" id="f_supplier_net" type="text" inputmode="numeric" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      </div>
+      <div class="fg">
+        <label>دخل العميل في اليوم</label>
+        <input class="fi" id="f_customer_daily" type="text" inputmode="numeric" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      </div>
+      <div class="fg">
+        <label>دخل السيارة في اليوم</label>
+        <input class="fi" id="f_car_daily" type="text" inputmode="numeric" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      </div>
+      <div class="fg">
+        <label>ملاحظات</label>
+        <textarea class="fi" id="f_notes" placeholder="أي ملاحظات..."></textarea>
+      </div>
+
+      <button class="sbtn add" id="submitBtn" onclick="save()">✅ حفظ الحجز</button>
+      <button class="cbtn" id="cancelBtn" onclick="cancelEdit()">✕ إلغاء التعديل</button>
+
+      <div class="sactions">
+        <button class="abtn g" onclick="exportExcel()">📊 Excel</button>
+        <button class="abtn b" onclick="exportCSV()">📥 CSV</button>
+        <button class="abtn o" onclick="exportJSON()">💾 تصدير JSON</button>
+        <button class="abtn b" onclick="document.getElementById('importFile').click()">📂 استيراد JSON</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
+        <button class="abtn r full" onclick="openDelAll()">🗑️ حذف جميع البيانات</button>
+      </div>
+    </aside>
+
+    <!-- ══ MAIN TABLE ══ -->
+    <main class="main">
+      <div class="toolbar">
+        <div class="tl">
+          <h3>📋 سجل الحجوزات</h3>
+          <p id="tblSub">0 حجز</p>
+        </div>
+        <div class="tr">
+          <div class="sbox">
+            <input id="srch" placeholder="بحث بالاسم أو السيارة..." oninput="render()">
+            <span class="si">🔍</span>
+          </div>
+          <select class="fsel" id="fstat" onchange="render()">
+            <option value="">كل الحالات</option>
+            <option value="نشط">نشط</option>
+            <option value="مكتمل">مكتمل</option>
+            <option value="ملغي">ملغي</option>
+            <option value="معلق">معلق</option>
+            <option value="متأخر">متأخر</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="twrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>رقم</th>
+              <th>صورة</th>
+              <th>العميل</th>
+              <th>السيارة</th>
+              <th>دخول</th>
+              <th>خروج</th>
+              <th>أيام</th>
+              <th>سائق</th>
+              <th>الإجمالي</th>
+              <th>المتبقي</th>
+              <th>الحالة</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="ov" id="detailOv">
+  <div class="modal">
+    <div class="mhdr">
+      <h3 id="mTitle">تفاصيل الحجز</h3>
+      <button class="mcls" onclick="closeModal()">✕</button>
+    </div>
+    <div class="mbody" id="mBody"></div>
+    <div class="mftr">
+      <button class="mb-e" onclick="editFromModal()">✏️ تعديل</button>
+      <button class="mb-p" onclick="printFromModal()">🖨️ طباعة</button>
+      <button class="mb-d" onclick="delFromModal()">🗑️ حذف</button>
+      <button class="mb-c" onclick="closeModal()">✕ إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE ALL DIALOG (needs password) -->
+<div class="cdlg" id="delAllDlg">
+  <div class="cbox danger">
+    <div class="ci">⚠️</div>
+    <h3 style="color:var(--red)">حذف جميع الحجوزات</h3>
+    <p>هذا الإجراء لا يمكن التراجع عنه.<br>أدخل كلمة المرور للتأكيد.</p>
+    <input type="password" id="delAllPw" placeholder="كلمة المرور...">
+    <div class="cacts">
+      <button class="cok" onclick="confirmDelAll()">حذف الكل</button>
+      <button class="cno" onclick="closeDelAll()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"><span id="tmsg"></span><div class="tbar"></div></div>
+
+<script>
+/* ════ CONFIG ════ */
+const PASS   = "tarektrend54";
+const DB_KEY = "trendcar_v1";
+
+/* ════ STATE ════ */
+let DB        = JSON.parse(localStorage.getItem(DB_KEY) || "[]");
+let editIdx   = null;
+let curModal  = null;
+let imgData   = "";
+
+/* ════ THEME ════ */
+const savedTheme = localStorage.getItem("trendTheme") || "dark";
+if(savedTheme === "light") document.body.classList.add("light");
+function toggleTheme(){
+  document.body.classList.toggle("light");
+  const isLight = document.body.classList.contains("light");
+  localStorage.setItem("trendTheme", isLight ? "light" : "dark");
+  document.getElementById("themeBtn").textContent = isLight ? "☀️" : "🌙";
+}
+document.getElementById("themeBtn").textContent = savedTheme === "light" ? "☀️" : "🌙";
+
+/* ════ AUTH ════ */
+function doLogin(){
+  const v = document.getElementById("pwIn").value;
+  if(v === PASS){
+    sessionStorage.setItem("tcAuth","1");
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    initApp();
+  } else {
+    playAlert();
+    document.getElementById("loginErr").textContent = "❌ كلمة المرور غلط";
+    document.getElementById("pwIn").value = "";
+    setTimeout(()=>document.getElementById("loginErr").textContent="", 3000);
+  }
+}
+function doLogout(){
+  sessionStorage.removeItem("tcAuth");
+  location.reload();
+}
+if(sessionStorage.getItem("tcAuth") === "1"){
+  document.getElementById("loginPage").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  initApp();
+}
+
+/* ════ INIT ════ */
+function initApp(){ startClock(); renderAll(); }
+
+/* ════ CLOCK ════ */
+function startClock(){
+  const el = document.getElementById("clk");
+  setInterval(()=>{ el.textContent = "⏰ " + new Date().toLocaleTimeString("ar-EG"); }, 1000);
+}
+
+/* ════ STORAGE ════ */
+function saveDB(){ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
+
+/* ════ TOAST ════ */
+let toastT;
+function toast(msg, sound=false){
+  if(sound) playAlert();
+  const el = document.getElementById("toast");
+  document.getElementById("tmsg").textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastT);
+  toastT = setTimeout(()=>el.classList.remove("show"), 3500);
+}
+function playAlert(){
+  const a = document.getElementById("alertSound");
+  if(!a) return;
+  a.currentTime = 0;
+  a.play().catch(()=>{});
+}
+
+/* ════ FORM HELPERS ════ */
+function toggleDriver(){
+  document.getElementById("driverRow").style.display =
+    document.getElementById("f_driver").value === "نعم" ? "block" : "none";
+}
+
+function previewImg(inp){
+  const f = inp.files[0];
+  if(!f){ imgData = ""; document.getElementById("carImgPreview").style.display="none"; return; }
+  const r = new FileReader();
+  r.onload = e => {
+    imgData = e.target.result;
+    const p = document.getElementById("carImgPreview");
+    p.src = imgData; p.style.display = "block";
+  };
+  r.readAsDataURL(f);
+}
+
+function calc(){
+  const co = document.getElementById("f_out").value;
+  const days = parseInt(document.getElementById("f_days").value) || 0;
+  
+  // حساب تاريخ الدخول من تاريخ الخروج - عدد الأيام
+  if(co && days > 0){
+    const coDate = new Date(co);
+    coDate.setDate(coDate.getDate() + days);
+    const y = coDate.getFullYear();
+    const m = String(coDate.getMonth()+1).padStart(2,"0");
+    const d = String(coDate.getDate()).padStart(2,"0");
+    document.getElementById("f_in").value = `${y}-${m}-${d}`;
+  } else {
+    document.getElementById("f_in").value = "";
+  }
+
+  const ppd   = parseFloat(document.getElementById("f_ppd").value) || 0;
+  const total = days * ppd;
+  document.getElementById("f_total").value = total ? numFmt(total) : "";
+  calcRem();
+}
+
+function parseNum(s){ 
+  if(!s) return 0;
+  const cleaned = String(s)
+    .replace(/[٠١٢٣٤٥٦٧٨٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+    .replace(/[,،٬\s]/g, "");
+  return parseFloat(cleaned) || 0; 
+}
+
+function calcRem(){
+  const total = parseNum(document.getElementById("f_total").value);
+  const paid  = parseFloat(document.getElementById("f_paid").value) || 0;
+  const rem   = total - paid;
+  const el    = document.getElementById("f_rem");
+  el.value    = numFmt(rem >= 0 ? rem : 0);
+  el.className = rem > 0 ? "fi fi-red" : "fi fi-green";
+}
+function numFmt(n){ return Number(n).toLocaleString("ar-EG"); }
+function dtFmt(d){ if(!d) return "—"; return new Date(d).toLocaleDateString("ar-EG",{year:"numeric",month:"short",day:"numeric"}); }
+
+function nextId(){
+  if(!DB.length) return "TCR-001";
+  const mx = Math.max(...DB.map(b=>parseInt((b.id||"TCR-000").replace("TCR-",""))||0));
+  return "TCR-" + String(mx+1).padStart(3,"0");
+}
+
+/* ════ SAVE ════ */
+function save(){
+  const name = document.getElementById("f_name").value.trim();
+  const car  = document.getElementById("f_car").value.trim();
+  const days_val = document.getElementById("f_days").value;
+  const co   = document.getElementById("f_out").value;
+  const ci   = document.getElementById("f_in").value;
+  const ppd  = document.getElementById("f_ppd").value;
+  if(!name){ toast("⚠️ اسم العميل مطلوب"); return; }
+  if(!car){  toast("⚠️ نوع السيارة مطلوب"); return; }
+  if(!days_val||parseInt(days_val)<1){ toast("⚠️ عدد أيام الإيجار مطلوب"); return; }
+  if(!co){ toast("⚠️ تاريخ الخروج مطلوب"); return; }
+  if(!ppd){  toast("⚠️ سعر الإيجار مطلوب"); return; }
+
+  const bk = {
+    id:      editIdx !== null ? DB[editIdx].id : nextId(),
+    name,
+    cid:     document.getElementById("f_cid").value.trim(),
+    pass:    document.getElementById("f_pass").value.trim(),
+    card:    document.getElementById("f_card").value.trim(),
+    car,
+    img:     imgData || (editIdx !== null ? DB[editIdx].img : ""),
+    driver:  document.getElementById("f_driver").value,
+    dname:   document.getElementById("f_dname").value.trim(),
+    gas:     parseFloat(document.getElementById("f_gas").value)||0,
+    supplier_net:    parseFloat(document.getElementById("f_supplier_net").value)||0,
+    customer_daily:  parseFloat(document.getElementById("f_customer_daily").value)||0,
+    car_daily:       parseFloat(document.getElementById("f_car_daily").value)||0,
+    ci, co,
+    time:    document.getElementById("f_time").value,
+    days:    parseInt(document.getElementById("f_days").value)||0,
+    ppd:     parseFloat(ppd)||0,
+    total:   parseNum(document.getElementById("f_total").value),
+    paid:    parseFloat(document.getElementById("f_paid").value)||0,
+    rem:     parseNum(document.getElementById("f_rem").value),
+    status:  document.getElementById("f_status").value,
+    notes:   document.getElementById("f_notes").value.trim(),
+    at:      editIdx !== null ? DB[editIdx].at : new Date().toISOString()
+  };
+
+  if(editIdx !== null){ DB[editIdx] = bk; toast("✅ تم تحديث الحجز",true); editIdx=null; }
+  else { DB.push(bk); toast("✅ تم إضافة الحجز",true); }
+  saveDB(); clearForm(); renderAll();
+}
+
+/* ════ CLEAR FORM ════ */
+function clearForm(){
+  ["f_name","f_cid","f_pass","f_card","f_car","f_dname","f_gas","f_in","f_out","f_time",
+   "f_days","f_ppd","f_total","f_paid","f_rem","f_supplier_net","f_customer_daily","f_car_daily","f_notes"].forEach(id=>{
+    const e = document.getElementById(id); if(e) e.value = "";
+  });
+  document.getElementById("f_driver").value = "لا";
+  document.getElementById("f_status").value = "نشط";
+  document.getElementById("driverRow").style.display = "none";
+  document.getElementById("carImgPreview").style.display = "none";
+  document.getElementById("f_img").value = "";
+  imgData = "";
+  editIdx = null;
+  const sb = document.getElementById("submitBtn");
+  sb.textContent = "✅ حفظ الحجز";
+  sb.className = "sbtn add";
+  document.getElementById("cancelBtn").style.display = "none";
+  document.getElementById("ftitle").textContent = "🆕 حجز جديد";
+  document.getElementById("fbadge").textContent = "جديد";
+}
+function cancelEdit(){ clearForm(); toast("تم إلغاء التعديل"); }
+
+/* ════ IS LATE ════ */
+function isLate(b){ 
+  return b.status === "نشط" && b.ci && new Date(b.ci + "T00:00:00") < new Date(); 
+}
+
+/* ════ STATUS BADGE ════ */
+function statusBadge(b){
+  if(isLate(b)) return `<span class="badge b-late">متأخر</span>`;
+  const map = {نشط:"b-active",مكتمل:"b-done",ملغي:"b-cancel",معلق:"b-pending"};
+  return `<span class="badge ${map[b.status]||"b-pending"}">${b.status}</span>`;
+}
+
+/* ════ RENDER ALL ════ */
+function renderAll(){ renderStats(); render(); }
+
+function renderStats(){
+  const t   = DB.length;
+  const act = DB.filter(b=>b.status==="نشط").length;
+  const lt  = DB.filter(isLate).length;
+  const don = DB.filter(b=>b.status==="مكتمل").length;
+  const wd  = DB.filter(b=>b.driver==="نعم").length;
+  const rev = DB.reduce((s,b)=>s+(b.total||0),0);
+  const rem = DB.reduce((s,b)=>s+(b.rem||0),0);
+  document.getElementById("st0").textContent = t;
+  document.getElementById("st1").textContent = act;
+  document.getElementById("st2").textContent = lt;
+  document.getElementById("st3").textContent = don;
+  document.getElementById("st4").textContent = wd;
+  document.getElementById("st5").textContent = numFmt(rev)+" ج.م";
+  document.getElementById("st6").textContent = numFmt(rem)+" ج.م";
+}
+
+function render(){
+  const q  = document.getElementById("srch").value.trim().toLowerCase();
+  const sf = document.getElementById("fstat").value;
+  let list = DB.map((b,i)=>({...b,_i:i}));
+  if(sf==="متأخر") list=list.filter(isLate);
+  else if(sf) list=list.filter(b=>b.status===sf);
+  if(q) list=list.filter(b=>
+    (b.name||"").toLowerCase().includes(q)||
+    (b.car||"").toLowerCase().includes(q)||
+    (b.id||"").toLowerCase().includes(q)
+  );
+  document.getElementById("tblSub").textContent = `${list.length} حجز`;
+  const tbody = document.getElementById("tbody");
+  if(!list.length){
+    tbody.innerHTML=`<tr><td colspan="12"><div class="empty-state"><div class="ei">📋</div><h3>لا توجد نتائج</h3><p>جرب تغيير الفلتر أو أضف حجز جديد</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(b=>`
+    <tr class="${isLate(b)?"late-row":""}" onclick="openModal(${b._i})">
+      <td><span class="rid">${b.id}</span></td>
+      <td>${b.img?`<img class="cthumb" src="${b.img}">`:`<span class="cnothumb">🚗</span>`}</td>
+      <td><strong>${b.name}</strong></td>
+      <td style="white-space:nowrap">${b.car}</td>
+      <td style="white-space:nowrap">${dtFmt(b.ci)}</td>
+      <td style="white-space:nowrap">${dtFmt(b.co)}${b.time?`<br><span style="font-size:10px;color:var(--mu)">${b.time}</span>`:""}</td>
+      <td style="color:var(--gold);font-weight:700">${b.days||"—"}</td>
+      <td>${b.driver==="نعم"?`<span style="color:var(--green);font-weight:700">✓</span>`:`<span style="color:var(--mu)">—</span>`}</td>
+      <td style="color:var(--green);font-weight:700;white-space:nowrap">${numFmt(b.total||0)} ج.م</td>
+      <td style="color:${(b.rem||0)>0?"var(--red)":"var(--green)"};font-weight:700;white-space:nowrap">${numFmt(b.rem||0)} ج.م</td>
+      <td>${statusBadge(b)}</td>
+      <td onclick="event.stopPropagation()">
+        <div class="ra">
+          <button class="rab edt" title="تعديل" onclick="editBooking(${b._i})">✏️</button>
+          <button class="rab dlt" title="حذف" onclick="delBooking(${b._i})">🗑️</button>
+        </div>
+      </td>
+    </tr>`).join("");
+}
+
+/* ════ MODAL ════ */
+function openModal(idx){
+  curModal = idx;
+  const b = DB[idx];
+  document.getElementById("mTitle").textContent = `${b.name} — ${b.id}`;
+  document.getElementById("mBody").innerHTML = `
+    ${b.img?`<img src="${b.img}" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-bottom:12px;border:1px solid var(--br)">`:""}
+    <div class="dgrid">
+      <div class="di gold full"><div class="dl">الحالة</div><div class="dv">${statusBadge(b)}</div></div>
+      <div class="di"><div class="dl">رقم الحجز</div><div class="dv" style="color:var(--gold)">${b.id}</div></div>
+      <div class="di"><div class="dl">اسم العميل</div><div class="dv">👤 ${b.name}</div></div>
+      ${b.cid?`<div class="di"><div class="dl">رقم العميل</div><div class="dv">${b.cid}</div></div>`:""}
+      ${b.pass?`<div class="di"><div class="dl">رقم الجواز</div><div class="dv">${b.pass}</div></div>`:""}
+      ${b.card?`<div class="di"><div class="dl">البطاقة</div><div class="dv">${b.card}</div></div>`:""}
+      <div class="di"><div class="dl">السيارة</div><div class="dv">🚗 ${b.car}</div></div>
+      <div class="di"><div class="dl">مع سائق</div><div class="dv">${b.driver==="نعم"?`✅ نعم${b.dname?" — "+b.dname:""}`:""||"❌ لا"}</div></div>
+      <div class="di"><div class="dl">تاريخ الدخول</div><div class="dv">${dtFmt(b.ci)}</div></div>
+      <div class="di"><div class="dl">تاريخ الخروج</div><div class="dv">${dtFmt(b.co)}${b.time?" — "+b.time:""}</div></div>
+      <div class="di"><div class="dl">عدد الأيام</div><div class="dv" style="color:var(--gold);font-size:17px;font-weight:900">${b.days} يوم</div></div>
+      <div class="di"><div class="dl">سعر اليوم</div><div class="dv">${numFmt(b.ppd||0)} ج.م</div></div>
+      <div class="di"><div class="dl">الإجمالي</div><div class="dv" style="color:var(--green);font-size:16px">${numFmt(b.total||0)} ج.م</div></div>
+      <div class="di"><div class="dl">المدفوع</div><div class="dv">${numFmt(b.paid||0)} ج.م</div></div>
+      <div class="di"><div class="dl">المتبقي</div><div class="dv" style="color:${(b.rem||0)>0?"var(--red)":"var(--green)"}">${numFmt(b.rem||0)} ج.م</div></div>
+      ${b.supplier_net?`<div class="di"><div class="dl">صافي دخل المورد</div><div class="dv" style="color:var(--gold)">${numFmt(b.supplier_net)} ج.م</div></div>`:""}
+      ${b.customer_daily?`<div class="di"><div class="dl">دخل العميل في اليوم</div><div class="dv">${numFmt(b.customer_daily)} ج.م</div></div>`:""}
+      ${b.car_daily?`<div class="di"><div class="dl">دخل السيارة في اليوم</div><div class="dv">${numFmt(b.car_daily)} ج.م</div></div>`:""}
+      ${b.notes?`<div class="di full"><div class="dl">ملاحظات</div><div class="dv" style="white-space:pre-line">${b.notes}</div></div>`:""}
+    </div>`;
+  document.getElementById("detailOv").classList.add("open");
+}
+function closeModal(){ document.getElementById("detailOv").classList.remove("open"); }
+function editFromModal(){ if(curModal===null)return; closeModal(); editBooking(curModal); }
+function delFromModal(){ if(curModal===null)return; closeModal(); delBooking(curModal); }
+
+/* ════ EDIT / DELETE ════ */
+function editBooking(idx){
+  const b = DB[idx];
+  document.getElementById("f_name").value  = b.name;
+  document.getElementById("f_cid").value   = b.cid||"";
+  document.getElementById("f_pass").value  = b.pass||"";
+  document.getElementById("f_card").value  = b.card||"";
+  document.getElementById("f_car").value   = b.car;
+  document.getElementById("f_driver").value= b.driver||"لا";
+  document.getElementById("f_dname").value = b.dname||"";
+  document.getElementById("f_gas").value = b.gas||"";
+  document.getElementById("f_supplier_net").value = b.supplier_net||"";
+  document.getElementById("f_customer_daily").value = b.customer_daily||"";
+  document.getElementById("f_car_daily").value = b.car_daily||"";
+  document.getElementById("driverRow").style.display = b.driver==="نعم"?"block":"none";
+  document.getElementById("f_days").value   = b.days||"";
+  document.getElementById("f_out").value   = b.co||"";
+  document.getElementById("f_time").value  = b.time||"";
+  // حساب تاريخ الدخول من البيانات المحفوظة
+  if(b.ci){
+    const d = new Date(b.ci);
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,"0");
+    const dd = String(d.getDate()).padStart(2,"0");
+    document.getElementById("f_in").value = `${y}-${m}-${dd}`;
+  } else {
+    document.getElementById("f_in").value = "";
+  }
+  document.getElementById("f_ppd").value   = b.ppd||"";
+  document.getElementById("f_total").value = b.total?numFmt(b.total):"";
+  document.getElementById("f_paid").value  = b.paid||"";
+  document.getElementById("f_rem").value   = b.rem?numFmt(b.rem):"0";
+  document.getElementById("f_status").value= b.status||"نشط";
+  document.getElementById("f_notes").value = b.notes||"";
+  if(b.img){
+    imgData = b.img;
+    const p = document.getElementById("carImgPreview");
+    p.src=b.img; p.style.display="block";
+  } else { imgData=""; document.getElementById("carImgPreview").style.display="none"; }
+  editIdx = idx;
+  const sb = document.getElementById("submitBtn");
+  sb.textContent = "💾 حفظ التعديلات";
+  sb.className = "sbtn save";
+  document.getElementById("cancelBtn").style.display = "block";
+  document.getElementById("ftitle").textContent = "✏️ تعديل الحجز";
+  document.getElementById("fbadge").textContent = "تعديل";
+  document.querySelector(".sidebar").scrollTop = 0;
+}
+
+function delBooking(idx){
+  if(!confirm(`حذف حجز "${DB[idx].name}"؟`)) return;
+  DB.splice(idx,1);
+  saveDB(); renderAll();
+  toast("🗑️ تم حذف الحجز");
+  if(editIdx===idx) clearForm();
+}
+
+/* ════ DELETE ALL (needs password) ════ */
+function openDelAll(){
+  document.getElementById("delAllPw").value="";
+  document.getElementById("delAllDlg").classList.add("open");
+}
+function closeDelAll(){ document.getElementById("delAllDlg").classList.remove("open"); }
+function confirmDelAll(){
+  const pw = document.getElementById("delAllPw").value;
+  if(pw !== PASS){
+    playAlert();
+    toast("❌ كلمة المرور غلط");
+    closeDelAll();
+    // kick to login
+    setTimeout(()=>{ sessionStorage.removeItem("tcAuth"); location.reload(); }, 1200);
+    return;
+  }
+  DB=[];  saveDB(); renderAll(); closeDelAll();
+  toast("🗑️ تم حذف جميع البيانات");
+}
+
+/* ════ PRINT ════ */
+function printFromModal(){
+  const b = DB[curModal]; if(!b) return;
+  const w = window.open("","_blank","width=720,height=920");
+  w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head>
+<meta charset="UTF-8"><title>وصل حجز ${b.id}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+body{font-family:'Cairo',sans-serif;padding:28px;color:#111;background:#fff;max-width:680px;margin:0 auto}
+.logo{font-size:16px;font-weight:900;color:#333;margin-bottom:2px}
+h1{font-size:20px;border-bottom:2px solid #111;padding-bottom:9px;margin:14px 0 18px}
+table{width:100%;border-collapse:collapse}
+td{padding:8px 11px;border:1px solid #ddd;font-size:13px}
+td:first-child{font-weight:700;background:#f5f5f5;width:38%}
+.footer{margin-top:36px;font-size:11px;color:#999;text-align:center;border-top:1px solid #eee;padding-top:12px}
+.car-img{width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-bottom:16px;border:1px solid #ddd}
+</style></head><body>
+<div class="logo">🚗 Trend Car Rental — نظام إدارة تأجير السيارات</div>
+<h1>وصل حجز — ${b.id}</h1>
+${b.img?`<img class="car-img" src="${b.img}">`:""}
+<table>
+<tr><td>اسم العميل</td><td>${b.name}</td></tr>
+${b.cid?`<tr><td>رقم العميل</td><td>${b.cid}</td></tr>`:""}
+${b.pass?`<tr><td>رقم الجواز</td><td>${b.pass}</td></tr>`:""}
+${b.card?`<tr><td>رقم البطاقة</td><td>${b.card}</td></tr>`:""}
+<tr><td>السيارة</td><td>${b.car}</td></tr>
+<tr><td>مع سائق</td><td>${b.driver==="نعم"?"نعم"+(b.dname?" — "+b.dname:""):"لا"}</td></tr>
+<tr><td>تاريخ الدخول</td><td>${b.ci}</td></tr>
+<tr><td>تاريخ الخروج</td><td>${b.co}${b.time?" — "+b.time:""}</td></tr>
+<tr><td>عدد الأيام</td><td><strong>${b.days}</strong></td></tr>
+<tr><td>سعر الإيجار / يوم</td><td>${(b.ppd||0).toLocaleString()} ج.م</td></tr>
+<tr><td>إجمالي الإيجار</td><td><strong>${(b.total||0).toLocaleString()} ج.م</strong></td></tr>
+<tr><td>المدفوع</td><td>${(b.paid||0).toLocaleString()} ج.م</td></tr>
+<tr><td>المتبقي</td><td><strong style="color:${(b.rem||0)>0?"#e53e3e":"#276749"}">${(b.rem||0).toLocaleString()} ج.م</strong></td></tr>
+<tr><td>الحالة</td><td>${b.status}</td></tr>
+${b.notes?`<tr><td>ملاحظات</td><td>${b.notes}</td></tr>`:""}
+</table>
+<div class="footer">صدر بواسطة نظام Trend Car Rental — ${new Date().toLocaleDateString("ar-EG")}</div>
+<script>window.onload=()=>window.print()<\/script>
+</body></html>`);
+  w.document.close();
+}
+
+/* ════ EXPORT ════ */
+function exportExcel(){
+  if(!DB.length){ toast("لا توجد بيانات"); return; }
+  const rows = DB.map(b=>({
+    "رقم الحجز":b.id,"اسم العميل":b.name,"رقم العميل":b.cid,"رقم الجواز":b.pass,"البطاقة":b.card,
+    "نوع السيارة":b.car,"مع سائق":b.driver,"اسم السائق":b.dname,
+    "تاريخ الدخول":b.ci,"تاريخ الخروج":b.co,"وقت الخروج":b.time,"عدد الأيام":b.days,
+    "سعر اليوم":b.ppd,"الإجمالي":b.total,"المدفوع":b.paid,"المتبقي":b.rem,
+    "الحالة":b.status,"ملاحظات":b.notes
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"الحجوزات");
+  XLSX.writeFile(wb,`trend_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast("📊 تم تصدير Excel",true);
+}
+
+function exportCSV(){
+  if(!DB.length){ toast("لا توجد بيانات"); return; }
+  const cols=["id","name","cid","pass","card","car","driver","dname","ci","co","time","days","ppd","total","paid","rem","status","notes"];
+  const hdrs=["رقم الحجز","اسم العميل","رقم العميل","رقم الجواز","البطاقة","السيارة","سائق","اسم السائق","دخول","خروج","وقت الخروج","أيام","سعر اليوم","إجمالي","مدفوع","متبقي","حالة","ملاحظات"];
+  const csv="\uFEFF"+hdrs.join(",")+"\n"+DB.map(b=>cols.map(c=>JSON.stringify(b[c]||"")).join(",")).join("\n");
+  dl(new Blob([csv],{type:"text/csv;charset=utf-8"}),`trend_${new Date().toISOString().slice(0,10)}.csv`);
+  toast("📥 تم تصدير CSV");
+}
+
+function exportJSON(){
+  if(!DB.length){ toast("لا توجد بيانات"); return; }
+  const json = JSON.stringify(DB, null, 2);
+  dl(new Blob([json],{type:"application/json"}),`trend_backup_${new Date().toISOString().slice(0,10)}.json`);
+  toast("💾 تم تصدير JSON — احتفظ بالملف بأمان",true);
+}
+
+function importJSON(inp){
+  const f = inp.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!Array.isArray(data)) throw new Error("ملف غير صالح");
+      if(!confirm(`استيراد ${data.length} حجز؟ سيتم إضافتهم فوق البيانات الحالية.`)) return;
+      // merge by id
+      const existIds = new Set(DB.map(b=>b.id));
+      let added=0;
+      data.forEach(b=>{ if(!existIds.has(b.id)){ DB.push(b); added++; } });
+      saveDB(); renderAll();
+      toast(`✅ تم استيراد ${added} حجز جديد`,true);
+    } catch(err){ toast("❌ ملف JSON غلط"); }
+  };
+  r.readAsText(f);
+  inp.value="";
+}
+
+function dl(blob, name){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+}
+function toggleCombo(){
+  document.getElementById("comboMenu").classList.toggle("open");
+}
+function closeCombo(){
+  document.getElementById("comboMenu").classList.remove("open");
+}
+document.addEventListener("click", e=>{
+  if(!e.target.closest(".combo-wrap")) closeCombo();
+});
+/* ════ INIT RENDER ════ */
+renderAll();
+</script>
+</body>
+</html>
