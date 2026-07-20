@@ -284,6 +284,26 @@ select.fi option{background:var(--s2);color:var(--tx)}
       <label>نوع السيارة <span class="req">*</span></label>
       <input class="fi" id="f_car" placeholder="مثال: تويوتا كامري 2023">
     </div>
+    <div class="fg">
+      <label>رقم السيارة</label>
+      <input class="fi" id="f_plate" placeholder="رقم اللوحة">
+    </div>
+    <div class="fg">
+      <label>لون السيارة</label>
+      <input class="fi" id="f_color" placeholder="مثال: أبيض، أسود...">
+    </div>
+    <div class="fg">
+      <label>رقم الموتور</label>
+      <input class="fi" id="f_motor" placeholder="رقم الموتور">
+    </div>
+    <div class="fg">
+      <label>رقم الشاسيه</label>
+      <input class="fi" id="f_chassis" placeholder="رقم الشاسيه">
+    </div>
+    <div class="fg">
+      <label>رقم المرور</label>
+      <input class="fi" id="f_traffic" placeholder="رقم رخصة المرور">
+    </div>
 
     <div class="sec">💰 بيانات الاستثمار</div>
     <div class="fg">
@@ -293,6 +313,10 @@ select.fi option{background:var(--s2);color:var(--tx)}
     <div class="fg">
       <label>تاريخ تحصيل العائد</label>
       <input class="fi" id="f_collect" placeholder="مثال: كل 1 من الشهر، كل 15...">
+    </div>
+    <div class="fg">
+      <label>تاريخ دخول السيارة</label>
+      <input class="fi" type="date" id="f_entry_date">
     </div>
     <div class="fg">
       <label>ملاحظات</label>
@@ -448,7 +472,14 @@ function save(){
 
   const rec = {
     id:      editIdx !== null ? DB[editIdx].id : nextId(),
-    name, phone, car, return: ret, collect, notes,
+    name, phone, car,
+    plate:   document.getElementById("f_plate").value.trim(),
+    entry_date: document.getElementById("f_entry_date").value,
+    color:   document.getElementById("f_color").value.trim(),
+    motor:   document.getElementById("f_motor").value.trim(),
+    chassis: document.getElementById("f_chassis").value.trim(),
+    traffic: document.getElementById("f_traffic").value.trim(),
+    return: ret, collect, notes,
     at:      editIdx !== null ? DB[editIdx].at : new Date().toISOString()
   };
 
@@ -465,7 +496,7 @@ function save(){
 
 /* ══ CLEAR ══ */
 function clearForm(){
-  ["f_name","f_phone","f_car","f_return","f_collect","f_notes"].forEach(id=>{
+  ["f_name","f_phone","f_car","f_plate","f_color","f_motor","f_chassis","f_traffic","f_entry_date","f_return","f_collect","f_notes"].forEach(id=>{
     const e=document.getElementById(id); if(e) e.value="";
   });
   editIdx = null;
@@ -540,7 +571,12 @@ function openModal(idx){
       <div class="di"><div class="dl">رقم المورد</div><div class="dv" style="color:var(--teal)">${b.id}</div></div>
       <div class="di"><div class="dl">اسم المورد</div><div class="dv">🤝 ${b.name}</div></div>
       <div class="di"><div class="dl">رقم الهاتف</div><div class="dv">📱 ${b.phone}</div></div>
-      <div class="di"><div class="dl">نوع السيارة</div><div class="dv">🚗 ${b.car}</div></div>
+      ${b.plate?`<div class="di"><div class="dl">رقم السيارة</div><div class="dv">🔢 ${b.plate}</div></div>`:""}
+${b.color?`<div class="di"><div class="dl">لون السيارة</div><div class="dv">🎨 ${b.color}</div></div>`:""}
+${b.motor?`<div class="di"><div class="dl">رقم الموتور</div><div class="dv">${b.motor}</div></div>`:""}
+${b.chassis?`<div class="di"><div class="dl">رقم الشاسيه</div><div class="dv">${b.chassis}</div></div>`:""}
+${b.traffic?`<div class="di"><div class="dl">رقم المرور</div><div class="dv">${b.traffic}</div></div>`:""}
+${b.entry_date?`<div class="di"><div class="dl">تاريخ الدخول</div><div class="dv">📅 ${new Date(b.entry_date).toLocaleDateString("ar-EG",{year:"numeric",month:"long",day:"numeric"})}</div></div>`:""}
       ${b.notes?`<div class="di full"><div class="dl">ملاحظات</div><div class="dv" style="white-space:pre-line">${b.notes}</div></div>`:""}
     </div>`;
   document.getElementById("detailOv").classList.add("open");
@@ -554,7 +590,10 @@ function editSup(idx){
   const b = DB[idx];
   document.getElementById("f_name").value    = b.name;
   document.getElementById("f_phone").value   = b.phone;
-  document.getElementById("f_car").value     = b.car;
+  document.getElementById("f_car").value     = b.car||"";
+document.getElementById("f_color").value   = b.color||"";
+document.getElementById("f_motor").value   = b.motor||"";
+document.getElementById("f_entry_date").value = b.entry_date||"";
   document.getElementById("f_return").value  = b.return||"";
   document.getElementById("f_collect").value = b.collect||"";
   document.getElementById("f_notes").value   = b.notes||"";
@@ -565,6 +604,8 @@ function editSup(idx){
   document.getElementById("ftitle").textContent = "✏️ تعديل المورد";
   document.getElementById("fbadge").textContent = "تعديل";
   document.querySelector(".sidebar").scrollTop = 0;
+  document.getElementById("f_chassis").value = b.chassis||"";
+  document.getElementById("f_traffic").value = b.traffic||"";
 }
 function delSup(idx){
   if(!confirm(`حذف مورد "${DB[idx].name}"؟`)) return;
