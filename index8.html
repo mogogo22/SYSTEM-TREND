@@ -6,6 +6,8 @@
 <title>Trend Car Rental — مصاريف المكتب</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <audio id="alertSound" src="das.mp3" preload="auto"></audio>
 <style>
@@ -389,6 +391,9 @@ textarea.fi{resize:vertical;min-height:56px}
 /* ════ CONFIG ════ */
 const PASS   = "tarektrend54";
 const DB_KEY = "trendcar_expenses_v1";
+const firebaseConfig = { /* الصق هنا الـ config اللي جبته من Firebase */ };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
 /* ════ STATE ════ */
 let DB        = JSON.parse(localStorage.getItem(DB_KEY) || "[]");
@@ -441,7 +446,10 @@ function startClock(){
 }
 
 /* ════ STORAGE ════ */
-function saveDB(){ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
+function saveDB(){
+    localStorage.setItem(DB_KEY, JSON.stringify(DB));
+    db.ref(DB_KEY).set(DB);
+}
 
 /* ════ TOAST ════ */
 let toastT;
@@ -733,7 +741,12 @@ document.addEventListener("click", e=>{
 });
 
 /* ════ INIT RENDER ════ */
-renderAll();
+db.ref(DB_KEY).on('value', function(snapshot){
+    const cloudData = snapshot.val();
+    if (cloudData) DB = cloudData;
+    localStorage.setItem(DB_KEY, JSON.stringify(DB));
+    renderAll();
+});
 </script>
 </body>
 </html>
