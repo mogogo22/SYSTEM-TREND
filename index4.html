@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trend Car Rental — الرواتب والموظفين</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <audio id="alertSound" src="das.mp3" preload="auto"></audio>
 <style>
@@ -426,19 +424,6 @@ document.addEventListener("keydown", function(e){
 });
 const PASS   = "tarektrend54";
 const DB_KEY = "trendcar_employees_v1";
-const firebaseConfig = {
-  apiKey: "AIzaSyC0kVJ6ozkkKzj6oIdKdquPh-AwAs6fMpk",
-  authDomain: "trend-system-1033e.firebaseapp.com",
-  databaseURL: "https:trend-system-1033e-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "trend-system-1033e",
-  storageBucket: "trend-system-1033e.firebasestorage.app",
-  messagingSenderId: "886061913898",
-  appId: "1:886061913898:web:c875c9bad30d6e440b7053",
-  measurementId: "G-6DZF453CC7"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
 
 let DB       = JSON.parse(localStorage.getItem(DB_KEY) || "[]");
 let editIdx  = null;
@@ -461,10 +446,7 @@ setInterval(()=>{
 }, 1000);
 
 /* ══ STORAGE ══ */
-function saveDB(){
-    localStorage.setItem(DB_KEY, JSON.stringify(DB));
-    db.ref(DB_KEY).set(DB);
-}
+function saveDB(){ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
 
 /* ══ TOAST ══ */
 let toastT;
@@ -786,12 +768,7 @@ function importJSON(inp){
 }
 
 /* ══ INIT ══ */
-db.ref(DB_KEY).on('value', function(snapshot){
-    const cloudData = snapshot.val();
-    if (cloudData) DB = cloudData;
-    localStorage.setItem(DB_KEY, JSON.stringify(DB));
-    renderAll();
-});
+renderAll();
 </script>
 </body>
 </html>
