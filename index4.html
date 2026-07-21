@@ -6,6 +6,8 @@
 <title>Trend Car Rental — الرواتب والموظفين</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <audio id="alertSound" src="das.mp3" preload="auto"></audio>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -425,6 +427,32 @@ document.addEventListener("keydown", function(e){
 const PASS   = "tarektrend54";
 const DB_KEY = "trendcar_employees_v1";
 
+/* ════ FIREBASE REALTIME SYNC ════ */
+const firebaseConfig = {
+  apiKey: "AIzaSyC0kVJ6ozkkKzj6oIdKdquPh-AwAs6fMpk",
+  authDomain: "trend-system-1033e.firebaseapp.com",
+  databaseURL: "https://trend-system-1033e-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "trend-system-1033e",
+  storageBucket: "trend-system-1033e.firebasestorage.app",
+  messagingSenderId: "886061913898",
+  appId: "1:886061913898:web:c875c9bad30d6e440b7053",
+  measurementId: "G-6DZF453CC7"
+};
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const rtdb = firebase.database();
+const rtdbRef = rtdb.ref("trend_system/employees");
+let rtdbSuppressNext = false;
+
+function startFirestoreSync(){
+  rtdbRef.on("value", function(snapshot){
+    const data = snapshot.val();
+    const items = Array.isArray(data) ? data : (data ? Object.values(data) : []);
+    DB = items;
+    localStorage.setItem(DB_KEY, JSON.stringify(DB));
+    renderAll();
+  }, function(err){ console.error("RTDB sync error:", err); });
+}
+
 let DB       = JSON.parse(localStorage.getItem(DB_KEY) || "[]");
 let editIdx  = null;
 let curModal = null;
@@ -446,7 +474,10 @@ setInterval(()=>{
 }, 1000);
 
 /* ══ STORAGE ══ */
-function saveDB(){ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
+function saveDB(){
+  localStorage.setItem(DB_KEY, JSON.stringify(DB));
+  rtdbRef.set(DB).catch(function(err){ console.error("RTDB save error:", err); });
+}
 
 /* ══ TOAST ══ */
 let toastT;
@@ -769,6 +800,7 @@ function importJSON(inp){
 
 /* ══ INIT ══ */
 renderAll();
+startFirestoreSync();
 </script>
 </body>
 </html>

@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <audio id="alertSound" src="das.mp3" preload="auto"></audio>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -219,6 +221,25 @@ textarea.fi{resize:vertical;min-height:56px}
 /* ══ CAR THUMB in table ══ */
 .cthumb{width:38px;height:28px;border-radius:5px;object-fit:cover;border:1px solid var(--br)}
 .cnothumb{width:38px;height:28px;border-radius:5px;background:var(--s3);display:inline-flex;align-items:center;justify-content:center;font-size:14px;color:var(--mu2)}
+.cs-filters{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--br)}
+.cs-fg{flex:1;min-width:120px}
+.cs-fg label{display:block;font-size:10px;font-weight:700;color:var(--mu);margin-bottom:4px}
+.cs-fg input{width:100%;padding:8px 10px;background:var(--s2);border:1.5px solid var(--br);border-radius:8px;color:var(--tx);font-family:inherit;font-size:12px}
+.cs-fbtn{padding:8px 16px;background:var(--gold);border:none;border-radius:8px;color:#07090e;font-family:inherit;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}
+.cs-cbtn{padding:8px 14px;background:var(--s2);border:1px solid var(--br2);border-radius:8px;color:var(--mu);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.cs-row{background:var(--s2);border:1px solid var(--br);border-radius:12px;margin-bottom:8px;overflow:hidden;cursor:pointer;transition:var(--tr)}
+.cs-row:hover{border-color:var(--br2)}
+.cs-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;gap:10px;flex-wrap:wrap}
+.cs-name{font-size:13px;font-weight:900;display:flex;align-items:center;gap:8px}
+.cs-count{font-size:10px;background:var(--s3);color:var(--gold);padding:2px 9px;border-radius:50px;font-weight:700;border:1px solid var(--br)}
+.cs-nums{display:flex;gap:14px;font-size:11px}
+.cs-nums span{display:flex;flex-direction:column;align-items:flex-end}
+.cs-nums b{font-size:13px}
+.cs-detail{display:none;padding:0 14px 12px;border-top:1px solid var(--br)}
+.cs-detail.open{display:block}
+.cs-drow{display:flex;justify-content:space-between;font-size:11px;padding:7px 0;border-bottom:1px dashed var(--br)}
+.cs-drow:last-child{border-bottom:none}
+.cs-empty{text-align:center;padding:40px 20px;color:var(--mu);font-size:13px}
 
 /* ══ MOBILE ══ */
 @media(max-width:900px){
@@ -321,7 +342,9 @@ textarea.fi{resize:vertical;min-height:56px}
     <div class="chip"><div class="dot" style="background:var(--blue)"></div><div><div class="sn" id="st3">0</div><div class="sl">مكتملة</div></div></div>
     <div class="chip"><div class="dot" style="background:var(--purple)"></div><div><div class="sn" id="st4">0</div><div class="sl">مع سائق</div></div></div>
     <div class="chip"><div class="dot" style="background:var(--green)"></div><div><div class="sn" id="st5">—</div><div class="sl">إجمالي الإيرادات</div></div></div>
+    <div class="chip"><div class="dot" style="background:var(--blue)"></div><div><div class="sn" id="st7">—</div><div class="sl">صافي الإيرادات</div></div></div>
     <div class="chip"><div class="dot" style="background:var(--red)"></div><div><div class="sn" id="st6">—</div><div class="sl">إجمالي المتبقي</div></div></div>
+    <button class="chip" style="cursor:pointer;border:1px solid var(--gold);background:rgba(200,151,58,.08)" onclick="openCarStats()"><div class="dot" style="background:var(--gold)"></div><div><div class="sn" style="font-size:14px">📊</div><div class="sl">إحصائيات العربيات</div></div></button>
   </div>
 
   <div class="abody">
@@ -341,8 +364,8 @@ textarea.fi{resize:vertical;min-height:56px}
       </div>
       <div class="firow">
         <div class="fg">
-          <label>رقم العميل <span style="color:var(--mu);font-weight:400">(اختياري)</span></label>
-          <input class="fi" id="f_cid" placeholder="رقم الهوية" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <label>رقم الهاتف <span style="color:var(--mu);font-weight:400">(إجباري)</span></label>
+          <input class="fi" id="f_cid" placeholder="01xxxxxxxxx" inputmode="tel" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
         </div>
         <div class="fg">
           <label>رقم الجواز <span style="color:var(--mu);font-weight:400">(اختياري)</span></label>
@@ -382,9 +405,13 @@ textarea.fi{resize:vertical;min-height:56px}
           <input class="fi" id="f_dname" placeholder="اسم السائق">
         </div>
         <div class="fg">
-          <label>تكلفة البنزين</label>
-          <input class="fi" id="f_gas" type="text" inputmode="numeric" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <label>أجر السائق</label>
+          <input class="fi" id="f_dwage" type="text" inputmode="numeric" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'');calc()">
         </div>
+      </div>
+      <div class="fg" id="gasRow" style="display:none">
+        <label>تكلفة البنزين</label>
+        <input class="fi" id="f_gas" type="text" inputmode="numeric" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'');calc()">
       </div>
 
       <!-- التواريخ والسعر -->
@@ -460,16 +487,16 @@ textarea.fi{resize:vertical;min-height:56px}
       <div class="firow">
         <div class="fg">
           <label>عداد الخروج (كم)</label>
-          <input class="fi" id="f_km_out" type="text" inputmode="decimal" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'');calcKm()">
+          <input class="fi" id="f_km_out" type="text" inputmode="decimal" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'');calcKm();calc()">
         </div>
         <div class="fg">
           <label>عداد الدخول (كم)</label>
-          <input class="fi" id="f_km_in" type="text" inputmode="decimal" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'');calcKm()">
+          <input class="fi" id="f_km_in" type="text" inputmode="decimal" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'');calcKm();calc()">
         </div>
       </div>
       <div class="fg">
         <label>سعر الكيلو الزيادة</label>
-        <input class="fi" id="f_km_price" type="text" inputmode="decimal" placeholder="0" oninput="this.value=this.value.replace(/[^0-9.]/g,'').replace(/(\..*)\./g,'$1');calcKm()">
+        <input class="fi" id="f_km_price" type="text" inputmode="decimal" placeholder="0" oninput="this.value=this.value.replace(/[^0-9.]/g,'').replace(/(\..*)\./g,'$1');calcKm();calc()">
       </div>
       <div class="fg">
         <label>اللي مشاه فعلاً</label>
@@ -484,16 +511,12 @@ textarea.fi{resize:vertical;min-height:56px}
         <input class="fi fi-red" id="f_km_cost" readonly placeholder="يُحسب تلقائياً">
       </div>
       <div class="fg">
-        <label>صافي دخل المورد</label>
-        <input class="fi" id="f_supplier_net" type="text" inputmode="numeric" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        <label>دخل المورد <span style="color:var(--mu);font-weight:400">(اختياري)</span></label>
+        <input class="fi" id="f_supplier_net" type="text" inputmode="numeric" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'');calc()">
       </div>
       <div class="fg">
-        <label>دخل العميل في اليوم</label>
-        <input class="fi" id="f_customer_daily" type="text" inputmode="numeric" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-      </div>
-      <div class="fg">
-        <label>دخل السيارة في اليوم</label>
-        <input class="fi" id="f_car_daily" type="text" inputmode="numeric" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        <label>صافي دخل الشركة</label>
+        <input class="fi fi-green" id="f_company_net" readonly placeholder="يُحسب تلقائياً">
       </div>
       <div class="fg">
         <label>ملاحظات</label>
@@ -522,7 +545,7 @@ textarea.fi{resize:vertical;min-height:56px}
         </div>
         <div class="tr">
           <div class="sbox">
-            <input id="srch" placeholder="بحث بالاسم أو السيارة..." oninput="render()">
+            <input id="srch" placeholder="بحث بالاسم أو رقم الهاتف..." oninput="render()">
             <span class="si">🔍</span>
           </div>
           <select class="fsel" id="fstat" onchange="render()">
@@ -611,7 +634,24 @@ textarea.fi{resize:vertical;min-height:56px}
     </div>
   </div>
 </div>
-
+<!-- CAR STATS MODAL -->
+<div class="ov" id="carStatsOv">
+  <div class="modal" style="width:680px">
+    <div class="mhdr">
+      <h3>📊 إحصائيات العربيات</h3>
+      <button class="mcls" onclick="closeCarStats()">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="cs-filters">
+        <div class="cs-fg"><label>من تاريخ</label><input type="date" id="csFrom"></div>
+        <div class="cs-fg"><label>إلى تاريخ</label><input type="date" id="csTo"></div>
+        <button class="cs-fbtn" onclick="applyCarStatsFilter()">تطبيق</button>
+        <button class="cs-cbtn" onclick="clearCarStatsFilter()">مسح الفلتر</button>
+      </div>
+      <div id="carStatsList"></div>
+    </div>
+  </div>
+</div>
 <!-- TOAST -->
 <div id="toast"><span id="tmsg"></span><div class="tbar"></div></div>
 
@@ -619,6 +659,32 @@ textarea.fi{resize:vertical;min-height:56px}
 /* ════ CONFIG ════ */
 const PASS   = "tarektrend54";
 const DB_KEY = "trendcar_v1";
+
+/* ════ FIREBASE REALTIME SYNC ════ */
+const firebaseConfig = {
+  apiKey: "AIzaSyC0kVJ6ozkkKzj6oIdKdquPh-AwAs6fMpk",
+  authDomain: "trend-system-1033e.firebaseapp.com",
+  databaseURL: "https://trend-system-1033e-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "trend-system-1033e",
+  storageBucket: "trend-system-1033e.firebasestorage.app",
+  messagingSenderId: "886061913898",
+  appId: "1:886061913898:web:c875c9bad30d6e440b7053",
+  measurementId: "G-6DZF453CC7"
+};
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const rtdb = firebase.database();
+const rtdbRef = rtdb.ref("trend_system/bookings");
+let rtdbSuppressNext = false;
+
+function startFirestoreSync(){
+  rtdbRef.on("value", function(snapshot){
+    const data = snapshot.val();
+    const items = Array.isArray(data) ? data : (data ? Object.values(data) : []);
+    DB = items;
+    localStorage.setItem(DB_KEY, JSON.stringify(DB));
+    renderAll();
+  }, function(err){ console.error("RTDB sync error:", err); });
+}
 
 /* ════ STATE ════ */
 let DB        = JSON.parse(localStorage.getItem(DB_KEY) || "[]");
@@ -726,7 +792,7 @@ if(sessionStorage.getItem("tcAuth") === "1"){
 }
 
 /* ════ INIT ════ */
-function initApp(){ startClock(); renderAll(); checkAlerts(); }
+function initApp(){ startClock(); renderAll(); checkAlerts(); startFirestoreSync(); }
 
 /* ════ CLOCK ════ */
 function startClock(){
@@ -735,7 +801,10 @@ function startClock(){
 }
 
 /* ════ STORAGE ════ */
-function saveDB(){ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
+function saveDB(){
+  localStorage.setItem(DB_KEY, JSON.stringify(DB));
+  rtdbRef.set(DB).catch(function(err){ console.error("RTDB save error:", err); });
+}
 
 /* ════ TOAST ════ */
 let toastT;
@@ -815,8 +884,14 @@ function toggleTotalCustom(checked){
   }
 }
 function toggleDriver(){
-  document.getElementById("driverRow").style.display =
-    document.getElementById("f_driver").value === "نعم" ? "block" : "none";
+  const show = document.getElementById("f_driver").value === "نعم";
+  document.getElementById("driverRow").style.display = show ? "block" : "none";
+  document.getElementById("gasRow").style.display = show ? "block" : "none";
+  if(!show){
+    document.getElementById("f_gas").value = "";
+    document.getElementById("f_dwage").value = "";
+  }
+  calc();
 }
 
 function previewImg(inp){
@@ -851,11 +926,13 @@ function calc(){
 
   if(!totalCustom){
     const ppd = parseFloat(document.getElementById("f_ppd").value) || 0;
-    const total = days * ppd;
-    document.getElementById("f_total").value = total ? total : "";
+    const kmCost = parseNum(document.getElementById("f_km_cost").value);
+    const total = (days * ppd) + kmCost;
+    document.getElementById("f_total").value = total || "";
   }
   
   calcRem();
+  calcCompanyNet();
 }
 
 // دالة حساب عدد الأيام تلقائياً من التواريخ
@@ -903,11 +980,19 @@ function parseNum(s){
 
 function calcRem(){
   const total = parseNum(document.getElementById("f_total").value);
-  const paid  = parseFloat(document.getElementById("f_paid").value) || 0;
-  const rem   = total - paid;
-  const el    = document.getElementById("f_rem");
-  el.value    = numFmt(rem >= 0 ? rem : 0);
+  const paid  = parseNum(document.getElementById("f_paid").value);
+  const rem = Math.max(0, total - paid);
+  const el = document.getElementById("f_rem");
+  el.value = numFmt(rem);
   el.className = rem > 0 ? "fi fi-red" : "fi fi-green";
+}
+function calcCompanyNet(){
+  const total    = parseNum(document.getElementById("f_total").value);
+  const supplier = parseNum(document.getElementById("f_supplier_net").value);
+  const wage     = parseNum(document.getElementById("f_dwage").value);
+  const gas      = parseNum(document.getElementById("f_gas").value);
+  const net = total - supplier - wage - gas;
+  document.getElementById("f_company_net").value = numFmt(net);
 }
 function numFmt(n){ return Number(n).toLocaleString("ar-EG"); }
 function dtFmt(d){ if(!d) return "—"; return new Date(d).toLocaleDateString("ar-EG",{year:"numeric",month:"short",day:"numeric"}); }
@@ -941,15 +1026,15 @@ function save(){
     cid:     document.getElementById("f_cid").value.trim(),
     pass:    document.getElementById("f_pass").value.trim(),
     card:    document.getElementById("f_card").value.trim(),
-    car,
+car,
     img:     imgData || (editIdx !== null ? DB[editIdx].img : ""),
     rent_type: document.getElementById("f_rent_type").value,
 driver:  document.getElementById("f_driver").value,
 dname:   document.getElementById("f_dname").value.trim(),
-    gas:     parseFloat(document.getElementById("f_gas").value)||0,
-    supplier_net:    parseFloat(document.getElementById("f_supplier_net").value)||0,
-    customer_daily:  parseFloat(document.getElementById("f_customer_daily").value)||0,
-    car_daily:       parseFloat(document.getElementById("f_car_daily").value)||0,
+gas:          parseFloat(document.getElementById("f_gas").value)||0,
+    dwage:        parseFloat(document.getElementById("f_dwage").value)||0,
+    supplier_net: parseFloat(document.getElementById("f_supplier_net").value)||0,
+    company_net:  parseNum(document.getElementById("f_company_net").value),
     ci, co,
     time:    document.getElementById("f_time").value,
     days:    parseInt(document.getElementById("f_days").value)||0,
@@ -990,8 +1075,8 @@ dname:   document.getElementById("f_dname").value.trim(),
 
 /* ════ CLEAR FORM ════ */
 function clearForm(){
-  ["f_name","f_cid","f_pass","f_card","f_car","f_dname","f_gas","f_in","f_out","f_time",
-   "f_days","f_ppd","f_total","f_paid","f_rem","f_supplier_net","f_customer_daily","f_car_daily","f_notes",
+  ["f_name","f_cid","f_pass","f_card","f_car","f_dname","f_gas","f_dwage","f_in","f_out","f_time",
+   "f_days","f_ppd","f_total","f_paid","f_rem","f_supplier_net","f_company_net","f_notes",
    "f_km_allow","f_km_price","f_km_out","f_km_in","f_km_actual","f_km_extra","f_km_cost"].forEach(id=>{
     const e = document.getElementById(id); if(e) e.value = "";
   });
@@ -1042,18 +1127,21 @@ function renderAll(){ renderStats(); render(); }
 
 function renderStats(){
   const t   = DB.length;
-  const act = DB.filter(b=>b.status==="نشط").length;
+  const act = DB.filter(b=>b.status==="نشط" && !isLate(b)).length;
   const lt  = DB.filter(isLate).length;
   const don = DB.filter(b=>b.status==="مكتمل").length;
   const wd  = DB.filter(b=>b.driver==="نعم").length;
-  const rev = DB.reduce((s,b)=>s+(b.total||0),0);
-  const rem = DB.reduce((s,b)=>s+(b.rem||0),0);
+  const rev = DB.reduce((s,b)=>s+(parseNum(b.total)||0),0);
+  const net = DB.reduce((s,b)=>s+((parseNum(b.total)||0)-(parseNum(b.supplier_net)||0)-(parseNum(b.dwage)||0)-(parseNum(b.gas)||0)),0);
+  const rem = DB.reduce((s,b)=>s+Math.max(0,(parseNum(b.total)||0)-(parseNum(b.paid)||0)),0);
+
   document.getElementById("st0").textContent = t;
   document.getElementById("st1").textContent = act;
   document.getElementById("st2").textContent = lt;
   document.getElementById("st3").textContent = don;
   document.getElementById("st4").textContent = wd;
   document.getElementById("st5").textContent = numFmt(rev)+" ج.م";
+  document.getElementById("st7").textContent = numFmt(net)+" ج.م";
   document.getElementById("st6").textContent = numFmt(rem)+" ج.م";
 }
 
@@ -1062,12 +1150,13 @@ function render(){
   const sf = document.getElementById("fstat").value;
   let list = DB.map((b,i)=>({...b,_i:i}));
   if(sf==="متأخر") list=list.filter(isLate);
-  else if(sf) list=list.filter(b=>b.status===sf);
-  if(q) list=list.filter(b=>
-    (b.name||"").toLowerCase().includes(q)||
-    (b.car||"").toLowerCase().includes(q)||
-    (b.id||"").toLowerCase().includes(q)
-  );
+else if(sf==="نشط") list=list.filter(b=>b.status==="نشط" && !isLate(b));
+else if(sf) list=list.filter(b=>b.status===sf);
+if(q) list=list.filter(b=>
+  (b.name||"").toLowerCase().includes(q)||
+  (b.cid||"").toLowerCase().includes(q)||
+  (b.id||"").toLowerCase().includes(q)
+);
   document.getElementById("tblSub").textContent = `${list.length} حجز`;
   const tbody = document.getElementById("tbody");
   if(!list.length){
@@ -1085,7 +1174,7 @@ function render(){
       <td style="color:var(--gold);font-weight:700">${b.days||"—"}</td>
       <td>${b.driver==="نعم"?`<span style="color:var(--green);font-weight:700">✓</span>`:`<span style="color:var(--mu)">—</span>`}</td>
       <td style="color:var(--green);font-weight:700;white-space:nowrap">${numFmt(b.total||0)} ج.م</td>
-      <td style="color:${(b.rem||0)>0?"var(--red)":"var(--green)"};font-weight:700;white-space:nowrap">${numFmt(b.rem||0)} ج.م</td>
+      <td style="color:${Math.max(0,(parseNum(b.total)||0)-(parseNum(b.paid)||0))>0?"var(--red)":"var(--green)"};font-weight:700;white-space:nowrap">${numFmt(Math.max(0,(parseNum(b.total)||0)-(parseNum(b.paid)||0)))} ج.م</td>
       <td>${statusBadge(b)}</td>
       <td onclick="event.stopPropagation()">
         <div class="ra">
@@ -1107,7 +1196,7 @@ function openModal(idx){
       <div class="di gold full"><div class="dl">الحالة</div><div class="dv">${statusBadge(b)}</div></div>
       <div class="di"><div class="dl">رقم الحجز</div><div class="dv" style="color:var(--gold)">${b.id}</div></div>
       <div class="di"><div class="dl">اسم العميل</div><div class="dv">👤 ${b.name}</div></div>
-      ${b.cid?`<div class="di"><div class="dl">رقم العميل</div><div class="dv">${b.cid}</div></div>`:""}
+      ${b.cid?`<div class="di"><div class="dl">رقم الهاتف</div><div class="dv">${b.cid}</div></div>`:""}
       ${b.pass?`<div class="di"><div class="dl">رقم الجواز</div><div class="dv">${b.pass}</div></div>`:""}
       ${b.card?`<div class="di"><div class="dl">البطاقة</div><div class="dv">${b.card}</div></div>`:""}
       <div class="di"><div class="dl">السيارة</div><div class="dv">🚗 ${b.car}</div></div>
@@ -1118,10 +1207,10 @@ function openModal(idx){
       <div class="di"><div class="dl">سعر اليوم</div><div class="dv">${numFmt(b.ppd||0)} ج.م</div></div>
       <div class="di"><div class="dl">الإجمالي</div><div class="dv" style="color:var(--green);font-size:16px">${numFmt(b.total||0)} ج.م</div></div>
       <div class="di"><div class="dl">المدفوع</div><div class="dv">${numFmt(b.paid||0)} ج.م</div></div>
-      <div class="di"><div class="dl">المتبقي</div><div class="dv" style="color:${(b.rem||0)>0?"var(--red)":"var(--green)"}">${numFmt(b.rem||0)} ج.م</div></div>
-      ${b.supplier_net?`<div class="di"><div class="dl">صافي دخل المورد</div><div class="dv" style="color:var(--gold)">${numFmt(b.supplier_net)} ج.م</div></div>`:""}
-      ${b.customer_daily?`<div class="di"><div class="dl">دخل العميل في اليوم</div><div class="dv">${numFmt(b.customer_daily)} ج.م</div></div>`:""}
-      ${b.car_daily?`<div class="di"><div class="dl">دخل السيارة في اليوم</div><div class="dv">${numFmt(b.car_daily)} ج.م</div></div>`:""}
+      <div class="di"><div class="dl">المتبقي</div><div class="dv" style="color:${Math.max(0,(parseNum(b.total)||0)-(parseNum(b.paid)||0))>0?"var(--red)":"var(--green)"}">${numFmt(Math.max(0,(parseNum(b.total)||0)-(parseNum(b.paid)||0)))} ج.م</div></div>
+      ${b.dwage?`<div class="di"><div class="dl">أجر السائق</div><div class="dv">${numFmt(b.dwage)} ج.م</div></div>`:""}
+      ${b.supplier_net?`<div class="di"><div class="dl">دخل المورد</div><div class="dv" style="color:var(--gold)">${numFmt(b.supplier_net)} ج.م</div></div>`:""}
+      ${b.company_net!==undefined?`<div class="di"><div class="dl">صافي دخل الشركة</div><div class="dv" style="color:var(--green);font-size:16px">${numFmt(b.company_net)} ج.م</div></div>`:""}
       ${b.km_cost?`<div class="di full"><div class="dl">نظام الكيلومتر</div><div class="dv" style="color:var(--red)">مشي ${numFmt(b.km_actual)} كم — زيادة ${numFmt(b.km_extra)} كم — تكلفة زيادة: ${numFmt(b.km_cost)} ج.م</div></div>`:""}
       ${b.notes?`<div class="di full"><div class="dl">ملاحظات</div><div class="dv" style="white-space:pre-line">${b.notes}</div></div>`:""}
     </div>`;
@@ -1145,16 +1234,15 @@ function editBooking(idx){
   document.getElementById("f_cid").value   = bk.cid||"";
   document.getElementById("f_pass").value  = bk.pass||"";
   document.getElementById("f_card").value  = bk.card||"";
-  document.getElementById("f_car").value   = bk.car||"";
+document.getElementById("f_car").value   = bk.car||"";
   document.getElementById("f_rent_type").value = bk.rent_type||"ايام";
   toggleRentType();
   document.getElementById("f_driver").value= bk.driver||"لا";
   toggleDriver();
   document.getElementById("f_dname").value = bk.dname||"";
   document.getElementById("f_gas").value   = bk.gas||"";
-  document.getElementById("f_supplier_net").value    = bk.supplier_net||"";
-  document.getElementById("f_customer_daily").value  = bk.customer_daily||"";
-  document.getElementById("f_car_daily").value       = bk.car_daily||"";
+  document.getElementById("f_dwage").value = bk.dwage||"";
+  document.getElementById("f_supplier_net").value = bk.supplier_net||"";
   document.getElementById("f_days").value  = bk.days||"";
   document.getElementById("f_out").value   = bk.co||"";
   document.getElementById("f_time").value  = bk.time||"";
@@ -1169,6 +1257,7 @@ function editBooking(idx){
   document.getElementById("f_km_out").value   = bk.km_out||"";
   document.getElementById("f_km_in").value    = bk.km_in||"";
   calcKm();
+  calcCompanyNet();
   if(bk.ci){
     const d = new Date(bk.ci);
     const y = d.getFullYear();
@@ -1255,7 +1344,7 @@ td:first-child{font-weight:700;background:#f5f5f5;width:38%}
 ${b.img?`<img class="car-img" src="${b.img}">`:""}
 <table>
 <tr><td>اسم العميل</td><td>${b.name}</td></tr>
-${b.cid?`<tr><td>رقم العميل</td><td>${b.cid}</td></tr>`:""}
+${b.cid?`<tr><td>رقم الهاتف</td><td>${b.cid}</td></tr>`:""}
 ${b.pass?`<tr><td>رقم الجواز</td><td>${b.pass}</td></tr>`:""}
 ${b.card?`<tr><td>رقم البطاقة</td><td>${b.card}</td></tr>`:""}
 <tr><td>السيارة</td><td>${b.car}</td></tr>
@@ -1280,7 +1369,7 @@ ${b.notes?`<tr><td>ملاحظات</td><td>${b.notes}</td></tr>`:""}
 function exportExcel(){
   if(!DB.length){ toast("لا توجد بيانات"); return; }
   const rows = DB.map(b=>({
-    "رقم الحجز":b.id,"اسم العميل":b.name,"رقم العميل":b.cid,"رقم الجواز":b.pass,"البطاقة":b.card,
+    "رقم الحجز":b.id,"اسم العميل":b.name,"رقم الهاتف":b.cid,"رقم الجواز":b.pass,"البطاقة":b.card,
     "نوع السيارة":b.car,"مع سائق":b.driver,"اسم السائق":b.dname,
     "تاريخ الدخول":b.ci,"تاريخ الخروج":b.co,"وقت الخروج":b.time,"عدد الأيام":b.days,
     "سعر اليوم":b.ppd,"الإجمالي":b.total,"المدفوع":b.paid,"المتبقي":b.rem,
@@ -1291,15 +1380,6 @@ function exportExcel(){
   XLSX.utils.book_append_sheet(wb,ws,"الحجوزات");
   XLSX.writeFile(wb,`trend_${new Date().toISOString().slice(0,10)}.xlsx`);
   toast("📊 تم تصدير Excel",true);
-}
-
-function exportCSV(){
-  if(!DB.length){ toast("لا توجد بيانات"); return; }
-  const cols=["id","name","cid","pass","card","car","driver","dname","ci","co","time","days","ppd","total","paid","rem","status","notes"];
-  const hdrs=["رقم الحجز","اسم العميل","رقم العميل","رقم الجواز","البطاقة","السيارة","سائق","اسم السائق","دخول","خروج","وقت الخروج","أيام","سعر اليوم","إجمالي","مدفوع","متبقي","حالة","ملاحظات"];
-  const csv="\uFEFF"+hdrs.join(",")+"\n"+DB.map(b=>cols.map(c=>JSON.stringify(b[c]||"")).join(",")).join("\n");
-  dl(new Blob([csv],{type:"text/csv;charset=utf-8"}),`trend_${new Date().toISOString().slice(0,10)}.csv`);
-  toast("📥 تم تصدير CSV");
 }
 
 function exportJSON(){
@@ -1343,6 +1423,84 @@ function closeCombo(){
 document.addEventListener("click", e=>{
   if(!e.target.closest(".combo-wrap")) closeCombo();
 });
+/* ════ CAR STATS ════ */
+let csData = [];
+
+function normalizeCarName(name){
+  return (name||"")
+    .trim().replace(/\s+/g," ")
+    .replace(/[إأآا]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه")
+    .replace(/[ًٌٍَُِّْ]/g,"")
+    .toLowerCase();
+}
+
+function computeCarStats(from, to){
+  const groups = {};
+  DB.forEach(b=>{
+    const d = b.co || b.ci || "";
+    if(from && d && d < from) return;
+    if(to && d && d > to) return;
+    const key = normalizeCarName(b.car);
+    if(!key) return;
+    if(!groups[key]) groups[key] = {display:b.car,count:0,revenue:0,supplier:0,wage:0,gas:0,net:0,bookings:[]};
+    const g = groups[key];
+    g.count++;
+    g.revenue  += parseNum(b.total);
+    g.supplier += parseNum(b.supplier_net);
+    g.wage     += parseNum(b.dwage);
+    g.gas      += parseNum(b.gas);
+    g.net      += (b.company_net!==undefined && b.company_net!=="" ? parseNum(b.company_net) : (parseNum(b.total)-parseNum(b.supplier_net)-parseNum(b.dwage)-parseNum(b.gas)));
+    g.bookings.push(b);
+  });
+  return Object.values(groups).sort((a,b)=>b.count-a.count);
+}
+
+function openCarStats(){
+  document.getElementById("csFrom").value = "";
+  document.getElementById("csTo").value = "";
+  applyCarStatsFilter();
+  document.getElementById("carStatsOv").classList.add("open");
+}
+function closeCarStats(){ document.getElementById("carStatsOv").classList.remove("open"); }
+function clearCarStatsFilter(){
+  document.getElementById("csFrom").value = "";
+  document.getElementById("csTo").value = "";
+  applyCarStatsFilter();
+}
+function applyCarStatsFilter(){
+  const from = document.getElementById("csFrom").value;
+  const to   = document.getElementById("csTo").value;
+  csData = computeCarStats(from, to);
+  renderCarStatsList();
+}
+function renderCarStatsList(){
+  const el = document.getElementById("carStatsList");
+  if(!csData.length){
+    el.innerHTML = `<div class="cs-empty">🚗 لا توجد بيانات لعرضها</div>`;
+    return;
+  }
+  el.innerHTML = csData.map((g,i)=>`
+    <div class="cs-row">
+      <div class="cs-head" onclick="toggleCsDetail(${i})">
+        <div class="cs-name">🚗 ${g.display} <span class="cs-count">${g.count} حجز</span></div>
+        <div class="cs-nums">
+          <span>الإيراد<b style="color:var(--green)">${numFmt(g.revenue)}</b></span>
+          <span>المورد<b style="color:var(--gold)">${numFmt(g.supplier)}</b></span>
+          <span>الصافي<b style="color:var(--blue)">${numFmt(g.net)}</b></span>
+        </div>
+      </div>
+      <div class="cs-detail" id="csdet_${i}">
+        ${g.bookings.map(b=>`
+          <div class="cs-drow">
+            <span>${b.name} — ${dtFmt(b.co)} → ${dtFmt(b.ci)}</span>
+            <span>${numFmt(parseNum(b.total))} ج.م</span>
+          </div>`).join("")}
+      </div>
+    </div>`).join("");
+}
+function toggleCsDetail(i){
+  document.getElementById(`csdet_${i}`).classList.toggle("open");
+}
 /* ════ INIT RENDER ════ */
 renderAll();
 </script>
