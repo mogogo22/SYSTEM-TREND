@@ -328,9 +328,10 @@ textarea.fi{resize:vertical;min-height:56px}
                 <div class="combo-item" onclick="location.href='index8.html'">💻 مصاريف المكتب</div>
             </div>
           </div>
-      <div class="hclock" id="clk">⏰ --:--</div>
-      <button class="icobtn" id="themeBtn" title="تغيير المظهر" onclick="toggleTheme()">🌙</button>
-      <button class="logoutbtn" onclick="doLogout()">🚪 خروج</button>
+          <div class="hclock" id="clk">⏰ --:--</div>
+          <button class="icobtn" title="أدوات Trend" onclick="window.open('https://mogogo22.github.io/Tools-Trend/','_blank')">🛠️</button>
+          <button class="icobtn" id="themeBtn" title="تغيير المظهر" onclick="toggleTheme()">🌙</button>
+          <button class="logoutbtn" onclick="doLogout()">🚪 خروج</button>
     </div>
   </header>
 
@@ -1092,8 +1093,8 @@ toggleTotalCustom(false);
   inEl.classList.add("fi-ro");
   inEl.classList.remove("fi");
   const totalEl = document.getElementById("f_total");
-totalEl.setAttribute("readonly",true);
-totalEl.classList.add("fi-green");
+  totalEl.setAttribute("readonly",true);
+  totalEl.classList.add("fi-green");
   totalEl.oninput = null;
   document.getElementById("ppdRow").style.display = "block";
   document.getElementById("driverRow").style.display = "none";
