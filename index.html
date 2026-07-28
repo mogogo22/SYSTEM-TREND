@@ -12,7 +12,6 @@
 <audio id="alertSound" src="das.mp3" preload="auto"></audio>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-
 /* ══ TOKENS ══ */
 :root{
   --bg:#07090e;--s1:#0d1018;--s2:#131720;--s3:#191f2a;
@@ -30,23 +29,19 @@ body.light{
   --tx:#1a2035;--mu:#5a6a8a;--mu2:#8a9ab8;
   --sh:0 4px 16px rgba(0,0,0,.08);--shl:0 12px 40px rgba(0,0,0,.14);
 }
-
 body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--s1)}
 ::-webkit-scrollbar-thumb{background:var(--br2);border-radius:4px}
 ::-webkit-scrollbar-thumb:hover{background:var(--gold)}
-
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
 @keyframes spin{to{transform:rotate(360deg)}}
-
 /* ══ TOAST ══ */
 #toast{position:fixed;top:22px;left:50%;transform:translateX(-50%) translateY(-90px);background:var(--s2);border:1px solid var(--br2);color:var(--tx);padding:12px 28px;border-radius:50px;font-size:14px;font-weight:700;z-index:99999;box-shadow:var(--shl);transition:transform .38s cubic-bezier(.34,1.56,.64,1),opacity .38s;opacity:0;pointer-events:none;display:flex;align-items:center;gap:10px;max-width:90vw;white-space:nowrap}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 #toast .tbar{position:absolute;bottom:0;left:0;height:3px;width:100%;background:linear-gradient(90deg,var(--gold),var(--blue));border-radius:0 0 50px 50px;animation:tbarA 3.5s linear forwards}
 @keyframes tbarA{from{width:100%}to{width:0}}
-
 /* ══ LOGIN ══ */
 #loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 #loginPage::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 90% 70% at 25% 85%,rgba(200,151,58,.07),transparent 55%),radial-gradient(ellipse 65% 85% at 78% 12%,rgba(59,130,246,.05),transparent 55%)}
@@ -64,10 +59,8 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--tx);min-hei
 .lbtn{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold),#9a6e20);border:none;border-radius:var(--r);color:#07090e;font-family:inherit;font-size:15px;font-weight:900;cursor:pointer;margin-top:8px;box-shadow:0 4px 20px rgba(200,151,58,.28);transition:var(--tr)}
 .lbtn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(200,151,58,.42)}
 #loginErr{color:var(--red);font-size:13px;text-align:center;margin-top:10px;font-weight:700;min-height:18px}
-
 /* ══ APP ══ */
 #app{display:none}
-
 /* ══ HEADER ══ */
 .hdr{height:62px;background:var(--s1);border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.35)}
 .hbrand{display:flex;align-items:center;gap:12px}
@@ -81,7 +74,6 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--tx);min-hei
 .icobtn:hover{border-color:var(--br2);background:var(--s3);color:var(--tx)}
 .logoutbtn{padding:7px 13px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:8px;color:var(--red);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:var(--tr);display:flex;align-items:center;gap:5px}
 .logoutbtn:hover{background:rgba(239,68,68,.2);border-color:var(--red)}
-
 /* ══ STATS BAR ══ */
 .sbar{background:var(--s1);border-bottom:1px solid var(--br);padding:9px 18px;display:flex;gap:7px;overflow-x:auto;scrollbar-width:none}
 .sbar::-webkit-scrollbar{display:none}
@@ -89,10 +81,8 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--tx);min-hei
 .chip .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .chip .sn{font-size:18px;font-weight:900}
 .chip .sl{font-size:11px;color:var(--mu);font-weight:600}
-
 /* ══ BODY LAYOUT ══ */
 .abody{display:grid;grid-template-columns:360px 1fr;min-height:calc(100vh - 108px)}
-
 /* ══ SIDEBAR ══ */
 .sidebar{background:var(--s1);border-left:1px solid var(--br);padding:15px;overflow-y:auto;position:sticky;top:62px;max-height:calc(100vh - 108px)}
 .fhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;padding-bottom:11px;border-bottom:1px solid var(--br)}
@@ -114,7 +104,6 @@ textarea.fi{resize:vertical;min-height:56px}
 .fi-green:focus{border-color:var(--br);box-shadow:none}
 .fi-red{background:var(--s3);color:var(--red);font-weight:900;cursor:default}
 .fi-red:focus{border-color:var(--br);box-shadow:none}
-
 /* car image upload */
 .img-upload{border:1.5px dashed var(--br2);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;transition:var(--tr);background:var(--s2);position:relative;overflow:hidden}
 .img-upload:hover{border-color:var(--gold);background:rgba(200,151,58,.04)}
@@ -122,7 +111,6 @@ textarea.fi{resize:vertical;min-height:56px}
 .img-upload .iup-label{font-size:12px;color:var(--mu);font-weight:600}
 .img-upload .iup-icon{font-size:22px;margin-bottom:3px}
 #carImgPreview{width:100%;max-height:100px;object-fit:cover;border-radius:7px;margin-top:8px;display:none;border:1px solid var(--br)}
-
 .sbtn{width:100%;padding:12px;border:none;border-radius:var(--r);font-family:inherit;font-size:14px;font-weight:900;cursor:pointer;transition:var(--tr);margin-top:7px}
 .sbtn.add{background:linear-gradient(135deg,var(--green),#166534);color:#fff;box-shadow:0 4px 16px rgba(34,197,94,.2)}
 .sbtn.add:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(34,197,94,.35)}
@@ -130,7 +118,6 @@ textarea.fi{resize:vertical;min-height:56px}
 .sbtn.save:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(59,130,246,.35)}
 .cbtn{width:100%;padding:8px;background:transparent;border:1px solid var(--br2);border-radius:var(--r);color:var(--mu);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:var(--tr);margin-top:4px;display:none}
 .cbtn:hover{border-color:var(--red);color:var(--red)}
-
 .sactions{margin-top:12px;padding-top:12px;border-top:1px solid var(--br);display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .abtn{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border:1px solid var(--br);border-radius:var(--r);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;transition:var(--tr);background:var(--s2);color:var(--tx)}
 .abtn:hover{border-color:var(--br2);background:var(--s3)}
@@ -139,7 +126,6 @@ textarea.fi{resize:vertical;min-height:56px}
 .abtn.o{border-color:rgba(245,158,11,.3);color:#fbbf24}.abtn.o:hover{background:rgba(245,158,11,.08);border-color:var(--orange)}
 .abtn.r{border-color:rgba(239,68,68,.3);color:#f87171}.abtn.r:hover{background:rgba(239,68,68,.08);border-color:var(--red)}
 .abtn.full{grid-column:1/-1}
-
 /* ══ MAIN ══ */
 .main{padding:16px;overflow-y:auto}
 .toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:9px}
@@ -152,12 +138,13 @@ textarea.fi{resize:vertical;min-height:56px}
 .sbox .si{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--mu);font-size:12px;pointer-events:none}
 .fsel{padding:8px 11px;background:var(--s2);border:1.5px solid var(--br);border-radius:50px;color:var(--tx);font-family:inherit;font-size:12px;cursor:pointer;font-weight:700}
 .fsel:focus{outline:none;border-color:var(--gold)}
-
 /* ══ TABLE ══ */
 .twrap{background:var(--s1);border:1px solid var(--br);border-radius:var(--rl);overflow:hidden}
 .tbl{width:100%;border-collapse:collapse;font-size:12px}
 .tbl thead tr{background:var(--s2);border-bottom:2px solid var(--br2)}
 .tbl th{padding:11px 12px;text-align:right;font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.th-sort{cursor:pointer;user-select:none;transition:var(--tr)}
+.th-sort:hover{color:var(--gold)}
 .tbl td{padding:10px 12px;border-bottom:1px solid var(--br);vertical-align:middle}
 .tbl tbody tr{transition:var(--tr);cursor:pointer}
 .tbl tbody tr:hover{background:var(--s2)}
@@ -172,7 +159,6 @@ textarea.fi{resize:vertical;min-height:56px}
 .empty-state{text-align:center;padding:60px 20px;color:var(--mu)}
 .empty-state .ei{font-size:42px;margin-bottom:11px;opacity:.4}
 .empty-state h3{font-size:15px;font-weight:900;color:var(--tx);margin-bottom:5px}
-
 /* ══ STATUS BADGES ══ */
 .badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:50px;white-space:nowrap}
 .badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
@@ -181,7 +167,6 @@ textarea.fi{resize:vertical;min-height:56px}
 .b-cancel{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2)}
 .b-pending{background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.2)}
 .b-late{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.4);animation:pulse 2s ease infinite}
-
 /* ══ MODAL ══ */
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;z-index:1000;padding:18px}
 .ov.open{display:flex}
@@ -203,7 +188,6 @@ textarea.fi{resize:vertical;min-height:56px}
 .mb-p{background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.25);color:#c084fc}.mb-p:hover{background:rgba(168,85,247,.2)}
 .mb-d{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171}.mb-d:hover{background:rgba(239,68,68,.2)}
 .mb-c{background:var(--s2);border:1px solid var(--br);color:var(--mu)}.mb-c:hover{border-color:var(--br2);color:var(--tx)}
-
 /* ══ CONFIRM DIALOGS ══ */
 .cdlg{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;z-index:9999}
 .cdlg.open{display:flex}
@@ -240,7 +224,6 @@ textarea.fi{resize:vertical;min-height:56px}
 .cs-drow{display:flex;justify-content:space-between;font-size:11px;padding:7px 0;border-bottom:1px dashed var(--br)}
 .cs-drow:last-child{border-bottom:none}
 .cs-empty{text-align:center;padding:40px 20px;color:var(--mu);font-size:13px}
-
 /* ══ MOBILE ══ */
 @media(max-width:900px){
   .abody{grid-template-columns:1fr}
@@ -248,7 +231,6 @@ textarea.fi{resize:vertical;min-height:56px}
   .sbox input{width:150px}
   .hclock{display:none}
 }
-
 @media print{
   #loginPage,#toast,.hdr,.sbar,.sidebar,.toolbar,.tbl .ra,.ov,.cdlg{display:none!important}
   .abody{grid-template-columns:1fr}
@@ -282,7 +264,6 @@ textarea.fi{resize:vertical;min-height:56px}
 </style>
 </head>
 <body>
-
 <!-- ═══ LOGIN ═══ -->
 <div id="loginPage">
   <div class="lgrid"></div>
@@ -304,7 +285,6 @@ textarea.fi{resize:vertical;min-height:56px}
 
 <!-- ═══ APP ═══ -->
 <div id="app">
-
   <!-- HEADER -->
   <header class="hdr">
     <div class="hbrand">
@@ -328,13 +308,16 @@ textarea.fi{resize:vertical;min-height:56px}
                 <div class="combo-item" onclick="location.href='index8.html'">💻 مصاريف المكتب</div>
             </div>
           </div>
+          <div class="chip" title="المستخدم الحالي">
+            <div class="dot" style="background:var(--gold)"></div>
+            <span id="currentUserLabel" style="font-size:12px;font-weight:700;">—</span>
+          </div>
           <div class="hclock" id="clk">⏰ --:--</div>
           <button class="icobtn" title="أدوات Trend" onclick="window.open('https://mogogo22.github.io/Tools-Trend/','_blank')">🛠️</button>
           <button class="icobtn" id="themeBtn" title="تغيير المظهر" onclick="toggleTheme()">🌙</button>
           <button class="logoutbtn" onclick="doLogout()">🚪 خروج</button>
     </div>
   </header>
-
   <!-- STATS BAR -->
   <div class="sbar">
     <div class="chip"><div class="dot" style="background:var(--gold)"></div><div><div class="sn" id="st0">0</div><div class="sl">إجمالي الحجوزات</div></div></div>
@@ -347,16 +330,13 @@ textarea.fi{resize:vertical;min-height:56px}
     <div class="chip"><div class="dot" style="background:var(--red)"></div><div><div class="sn" id="st6">—</div><div class="sl">إجمالي المتبقي</div></div></div>
     <button class="chip" style="cursor:pointer;border:1px solid var(--gold);background:rgba(200,151,58,.08)" onclick="openCarStats()"><div class="dot" style="background:var(--gold)"></div><div><div class="sn" style="font-size:14px">📊</div><div class="sl">إحصائيات العربيات</div></div></button>
   </div>
-
   <div class="abody">
-
     <!-- ══ SIDEBAR / FORM ══ -->
     <aside class="sidebar">
       <div class="fhead">
         <h2 id="ftitle">🆕 حجز جديد</h2>
         <span class="fbadge" id="fbadge">جديد</span>
       </div>
-
       <!-- بيانات العميل -->
       <div class="sec">👤 بيانات العميل</div>
       <div class="fg">
@@ -377,7 +357,6 @@ textarea.fi{resize:vertical;min-height:56px}
         <label>بطاقة العميل <span style="color:var(--mu);font-weight:400">(اختياري)</span></label>
         <input class="fi" id="f_card" placeholder="رقم البطاقة" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
       </div>
-
       <!-- بيانات الإيجار -->
       <div class="sec">🚗 بيانات الإيجار</div>
       <div class="fg">
@@ -414,7 +393,6 @@ textarea.fi{resize:vertical;min-height:56px}
         <label>تكلفة البنزين</label>
         <input class="fi" id="f_gas" type="text" inputmode="numeric" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'');calc()">
       </div>
-
       <!-- التواريخ والسعر -->
       <div class="sec">📅 التواريخ والسعر</div>
       <div class="fg">
@@ -523,20 +501,17 @@ textarea.fi{resize:vertical;min-height:56px}
         <label>ملاحظات</label>
         <textarea class="fi" id="f_notes" placeholder="أي ملاحظات..."></textarea>
       </div>
-
       <button class="sbtn add" id="submitBtn" onclick="save()">✅ حفظ الحجز</button>
       <button class="cbtn" id="cancelBtn" onclick="cancelEdit()">✕ إلغاء التعديل</button>
-
       <div class="sactions">
         <button class="abtn g" onclick="exportExcel()">📊 Excel</button>
-        <button class="abtn b" onclick="exportCSV()">📥 CSV</button>
         <button class="abtn o" onclick="exportJSON()">💾 تصدير JSON</button>
         <button class="abtn b" onclick="document.getElementById('importFile').click()">📂 استيراد JSON</button>
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
+        <button class="abtn o full" onclick="openTrash()">♻️ سلة المهملات</button>
         <button class="abtn r full" onclick="openDelAll()">🗑️ حذف جميع البيانات</button>
       </div>
     </aside>
-
     <!-- ══ MAIN TABLE ══ -->
     <main class="main">
       <div class="toolbar">
@@ -549,6 +524,14 @@ textarea.fi{resize:vertical;min-height:56px}
             <input id="srch" placeholder="بحث بالاسم أو رقم الهاتف..." oninput="render()">
             <span class="si">🔍</span>
           </div>
+          <input type="date" class="fsel" id="fdate" onchange="render()" style="border-radius:50px;">
+          <select class="fsel" id="fdateRange" onchange="render()">
+            <option value="">كل التواريخ</option>
+            <option value="today">اليوم</option>
+            <option value="week">آخر أسبوع</option>
+            <option value="month">آخر شهر</option>
+            <option value="year">آخر سنة</option>
+          </select>
           <select class="fsel" id="fstat" onchange="render()">
             <option value="">كل الحالات</option>
             <option value="نشط">نشط</option>
@@ -557,24 +540,24 @@ textarea.fi{resize:vertical;min-height:56px}
             <option value="معلق">معلق</option>
             <option value="متأخر">متأخر</option>
           </select>
+          <button class="fsel" onclick="resetFilters()" style="cursor:pointer;">↺ إعادة تعيين</button>
         </div>
       </div>
-
       <div class="twrap">
         <table class="tbl">
           <thead>
             <tr>
-              <th>رقم</th>
+              <th class="th-sort" onclick="setSort('id')">رقم <span id="sortIcon_id"></span></th>
               <th>صورة</th>
-              <th>العميل</th>
-              <th>السيارة</th>
-              <th>دخول</th>
-              <th>خروج</th>
-              <th>أيام</th>
+              <th class="th-sort" onclick="setSort('name')">العميل <span id="sortIcon_name"></span></th>
+              <th class="th-sort" onclick="setSort('car')">السيارة <span id="sortIcon_car"></span></th>
+              <th class="th-sort" onclick="setSort('ci')">دخول <span id="sortIcon_ci"></span></th>
+              <th class="th-sort" onclick="setSort('co')">خروج <span id="sortIcon_co"></span></th>
+              <th class="th-sort" onclick="setSort('days')">أيام <span id="sortIcon_days"></span></th>
               <th>سائق</th>
-              <th>الإجمالي</th>
-              <th>المتبقي</th>
-              <th>الحالة</th>
+              <th class="th-sort" onclick="setSort('total')">الإجمالي <span id="sortIcon_total"></span></th>
+              <th class="th-sort" onclick="setSort('rem')">المتبقي <span id="sortIcon_rem"></span></th>
+              <th class="th-sort" onclick="setSort('status')">الحالة <span id="sortIcon_status"></span></th>
               <th></th>
             </tr>
           </thead>
@@ -584,7 +567,6 @@ textarea.fi{resize:vertical;min-height:56px}
     </main>
   </div>
 </div>
-
 <!-- DETAIL MODAL -->
 <div class="ov" id="detailOv">
   <div class="modal">
@@ -653,14 +635,28 @@ textarea.fi{resize:vertical;min-height:56px}
     </div>
   </div>
 </div>
-<!-- TOAST -->
+<!-- TRASH MODAL -->
+<div class="ov" id="trashOv">
+  <div class="modal" style="width:680px">
+    <div class="mhdr">
+      <h3>♻️ سلة المهملات</h3>
+      <button class="mcls" onclick="closeTrash()">✕</button>
+    </div>
+    <div class="mbody">
+      <div id="trashList"></div>
+    </div>
+  </div>
+</div>
 <div id="toast"><span id="tmsg"></span><div class="tbar"></div></div>
-
 <script>
 /* ════ CONFIG ════ */
-const PASS   = "tarektrend54";
 const DB_KEY = "trendcar_v1";
-
+const TRASH_KEY = "trendcar_trash_v1";
+const CREDENTIALS = {
+  "tarektrend54": "ريهام",
+  "mogotrend54": "مهند",
+  "tarekcar54": "طارق"
+};
 /* ════ FIREBASE REALTIME SYNC ════ */
 const firebaseConfig = {
   apiKey: "AIzaSyC0kVJ6ozkkKzj6oIdKdquPh-AwAs6fMpk",
@@ -675,24 +671,45 @@ const firebaseConfig = {
 if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const rtdb = firebase.database();
 const rtdbRef = rtdb.ref("trend_system/bookings");
+const trashRef = rtdb.ref("trend_system/bookings_trash");
 let rtdbSuppressNext = false;
 
+function startTrashSync(){
+  trashRef.on("value", function(snapshot){
+    const data = snapshot.val();
+    const items = Array.isArray(data) ? data : (data ? Object.values(data) : []);
+    if(items.length === 0 && DB_TRASH.length > 0){
+      trashRef.set(DB_TRASH).catch(function(err){ console.error("RTDB trash recover-save error:", err); });
+      return;
+    }
+    DB_TRASH = items;
+    localStorage.setItem(TRASH_KEY, JSON.stringify(DB_TRASH));
+    if(document.getElementById("trashOv").classList.contains("open")) renderTrashList();
+  }, function(err){ console.error("RTDB trash sync error:", err); });
+}
 function startFirestoreSync(){
   rtdbRef.on("value", function(snapshot){
     const data = snapshot.val();
     const items = Array.isArray(data) ? data : (data ? Object.values(data) : []);
+    if(items.length === 0 && DB.length > 0){
+      rtdbRef.set(DB).catch(function(err){ console.error("RTDB recover-save error:", err); });
+      return;
+    }
     DB = items;
     localStorage.setItem(DB_KEY, JSON.stringify(DB));
     renderAll();
   }, function(err){ console.error("RTDB sync error:", err); });
 }
-
 /* ════ STATE ════ */
 let DB        = JSON.parse(localStorage.getItem(DB_KEY) || "[]");
+let DB_TRASH  = JSON.parse(localStorage.getItem(TRASH_KEY) || "[]");
 let editIdx   = null;
 let curModal  = null;
 let imgData   = "";
-
+let inCustom = false;
+let totalCustom = false;
+let sortKey = null;
+let sortDir = 1;
 function calcKm(){
   const days     = parseInt(document.getElementById("f_days").value) || 0;
   const kmAllow  = parseInt(document.getElementById("f_km_allow").value) || 0;
@@ -718,9 +735,7 @@ function checkAlerts(){
   const pending = DB.filter(b => b.status === "معلق");
   const late    = DB.filter(isLate);
   if(!pending.length && !late.length) return;
-
   let html = "";
-
   if(pending.length){
     html += `<div class="amodal-sec">
       <div class="amodal-title" style="color:var(--orange)">⚠️ حجوزات معلقة (${pending.length})</div>`;
@@ -735,7 +750,6 @@ function checkAlerts(){
     });
     html += `</div>`;
   }
-
   if(late.length){
     const today = dtFmt(new Date().toISOString().slice(0,10));
     html += `<div class="amodal-sec">
@@ -752,7 +766,6 @@ function checkAlerts(){
     });
     html += `</div>`;
   }
-
   document.getElementById("alertModalBody").innerHTML = html;
   setTimeout(()=> document.getElementById("alertModal").classList.add("open"), 700);
 }
@@ -766,12 +779,13 @@ function toggleTheme(){
   document.getElementById("themeBtn").textContent = isLight ? "☀️" : "🌙";
 }
 document.getElementById("themeBtn").textContent = savedTheme === "light" ? "☀️" : "🌙";
-
 /* ════ AUTH ════ */
 function doLogin(){
   const v = document.getElementById("pwIn").value;
-  if(v === PASS){
+  const matchedUser = CREDENTIALS[v];
+  if(matchedUser){
     sessionStorage.setItem("tcAuth","1");
+    sessionStorage.setItem("tcUser", matchedUser);
     document.getElementById("loginPage").style.display = "none";
     document.getElementById("app").style.display = "block";
     initApp();
@@ -784,29 +798,41 @@ function doLogin(){
 }
 function doLogout(){
   sessionStorage.removeItem("tcAuth");
+  sessionStorage.removeItem("tcUser");
   location.reload();
 }
-if(sessionStorage.getItem("tcAuth") === "1"){
+if(sessionStorage.getItem("tcAuth") === "1" && sessionStorage.getItem("tcUser")){
   document.getElementById("loginPage").style.display = "none";
   document.getElementById("app").style.display = "block";
   initApp();
 }
-
 /* ════ INIT ════ */
-function initApp(){ startClock(); renderAll(); checkAlerts(); startFirestoreSync(); }
-
+function initApp(){
+  const label = document.getElementById("currentUserLabel");
+  if(label) label.textContent = sessionStorage.getItem("tcUser") || "—";
+  clearForm();
+  document.getElementById("fdate").value = "";
+  document.getElementById("fdateRange").value = "";
+  startClock();
+  renderAll();
+  checkAlerts();
+  startFirestoreSync();
+  startTrashSync();
+}
 /* ════ CLOCK ════ */
 function startClock(){
   const el = document.getElementById("clk");
   setInterval(()=>{ el.textContent = "⏰ " + new Date().toLocaleTimeString("ar-EG"); }, 1000);
 }
-
 /* ════ STORAGE ════ */
 function saveDB(){
   localStorage.setItem(DB_KEY, JSON.stringify(DB));
   rtdbRef.set(DB).catch(function(err){ console.error("RTDB save error:", err); });
 }
-
+function saveTrash(){
+  localStorage.setItem(TRASH_KEY, JSON.stringify(DB_TRASH));
+  trashRef.set(DB_TRASH).catch(function(err){ console.error("RTDB trash save error:", err); });
+}
 /* ════ TOAST ════ */
 let toastT;
 function toast(msg, sound=false){
@@ -823,7 +849,6 @@ function playAlert(){
   a.currentTime = 0;
   a.play().catch(()=>{});
 }
-
 /* ════ FORM HELPERS ════ */
 function toggleRentType(){
   const type = document.getElementById("f_rent_type").value;
@@ -844,9 +869,6 @@ function toggleRentType(){
   }
   calc();
 }
-let inCustom = false;
-let totalCustom = false;
-
 function toggleInCustom(checked){
   inCustom = checked;
   const el = document.getElementById("f_in");
@@ -864,7 +886,6 @@ function toggleInCustom(checked){
     calc();
   }
 }
-
 function toggleTotalCustom(checked){
   totalCustom = checked;
   const el = document.getElementById("f_total");
@@ -894,7 +915,6 @@ function toggleDriver(){
   }
   calc();
 }
-
 function previewImg(inp){
   const f = inp.files[0];
   if(!f){ imgData = ""; document.getElementById("carImgPreview").style.display="none"; return; }
@@ -906,7 +926,6 @@ function previewImg(inp){
   };
   r.readAsDataURL(f);
 }
-
 function calc(){
   const co = document.getElementById("f_out").value;
   const days = parseInt(document.getElementById("f_days").value) || 0;
@@ -924,7 +943,6 @@ function calc(){
       document.getElementById("f_in").value = "";
     }
   }
-
   if(!totalCustom){
     const ppd = parseFloat(document.getElementById("f_ppd").value) || 0;
     const kmCost = parseNum(document.getElementById("f_km_cost").value);
@@ -935,7 +953,6 @@ function calc(){
   calcRem();
   calcCompanyNet();
 }
-
 // دالة حساب عدد الأيام تلقائياً من التواريخ
 function calcDaysFromDates(){
   const co = document.getElementById("f_out").value;
@@ -945,7 +962,6 @@ function calcDaysFromDates(){
     const dateIn = new Date(ci);
     const diffTime = dateIn - dateOut;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
     if(diffDays > 0){
       document.getElementById("f_days").value = diffDays;
       if(totalCustom){
@@ -958,7 +974,6 @@ function calcDaysFromDates(){
     }
   }
 }
-
 // دالة حساب سعر اليوم تلقائياً من الإجمالي
 function calcPpdFromTotal(){
   const total = parseFloat(document.getElementById("f_total").value) || 0;
@@ -970,7 +985,6 @@ function calcPpdFromTotal(){
     document.getElementById("f_ppd").value = "";
   }
 }
-
 function parseNum(s){ 
   if(!s) return 0;
   const cleaned = String(s)
@@ -978,7 +992,6 @@ function parseNum(s){
     .replace(/[,،٬\s]/g, "");
   return parseFloat(cleaned) || 0; 
 }
-
 function calcRem(){
   const total = parseNum(document.getElementById("f_total").value);
   const paid  = parseNum(document.getElementById("f_paid").value);
@@ -997,13 +1010,11 @@ function calcCompanyNet(){
 }
 function numFmt(n){ return Number(n).toLocaleString("ar-EG"); }
 function dtFmt(d){ if(!d) return "—"; return new Date(d).toLocaleDateString("ar-EG",{year:"numeric",month:"short",day:"numeric"}); }
-
 function nextId(){
   if(!DB.length) return "TCR-001";
   const mx = Math.max(...DB.map(b=>parseInt((b.id||"TCR-000").replace("TCR-",""))||0));
   return "TCR-" + String(mx+1).padStart(3,"0");
 }
-
 /* ════ SAVE ════ */
 function save(){
   const name = document.getElementById("f_name").value.trim();
@@ -1014,13 +1025,11 @@ function save(){
   const total_val = parseFloat(document.getElementById("f_total").value) || 0;
   const paid_val  = parseFloat(document.getElementById("f_paid").value) || 0;
   const rem_val   = parseFloat(document.getElementById("f_rem").value) || 0;
-  
   if(!name){ toast("⚠️ اسم العميل مطلوب"); return; }
   if(!car){  toast("⚠️ نوع السيارة مطلوب"); return; }
   const isTrip = document.getElementById("f_rent_type").value === "مشوار";
   if(!isTrip && (!days_val||parseInt(days_val)<1)){ toast("⚠️ عدد أيام الإيجار مطلوب"); return; }
   if(!co){ toast("⚠️ تاريخ الخروج مطلوب"); return; }
-
   const bk = {
     id:      editIdx !== null ? DB[editIdx].id : nextId(),
     name,
@@ -1046,6 +1055,9 @@ gas:          parseFloat(document.getElementById("f_gas").value)||0,
     status:  document.getElementById("f_status").value,
     notes:   document.getElementById("f_notes").value.trim(),
     at:      editIdx !== null ? DB[editIdx].at : new Date().toISOString(),
+    created_by: editIdx !== null ? (DB[editIdx].created_by || sessionStorage.getItem("tcUser") || "—") : (sessionStorage.getItem("tcUser") || "—"),
+    updated_by: sessionStorage.getItem("tcUser") || "—",
+    updated_at: new Date().toISOString(),
     km_allow:  parseInt(document.getElementById("f_km_allow").value)||0,
     km_price:  parseFloat(document.getElementById("f_km_price").value)||0,
     km_out:    parseInt(document.getElementById("f_km_out").value)||0,
@@ -1054,7 +1066,6 @@ gas:          parseFloat(document.getElementById("f_gas").value)||0,
     km_extra:  ((parseInt(document.getElementById("f_km_in").value)||0) - (parseInt(document.getElementById("f_km_out").value)||0)) - ((parseInt(document.getElementById("f_days").value)||0) * (parseInt(document.getElementById("f_km_allow").value)||0)),
     km_cost:   Math.max(0, ((parseInt(document.getElementById("f_km_in").value)||0) - (parseInt(document.getElementById("f_km_out").value)||0)) - ((parseInt(document.getElementById("f_days").value)||0) * (parseInt(document.getElementById("f_km_allow").value)||0))) * (parseFloat(document.getElementById("f_km_price").value)||0),
   };
-
   if(editIdx !== null){ 
     DB[editIdx] = bk; 
     toast("✅ تم تحديث الحجز",true); 
@@ -1063,17 +1074,14 @@ gas:          parseFloat(document.getElementById("f_gas").value)||0,
     DB.push(bk); 
     toast("✅ تم إضافة الحجز",true); 
   }
-  
   saveDB(); 
   clearForm(); 
-  
   // تصفية خانات البحث والفلتر تلقائياً عشان يرجع الجدول يعرض كل البيانات وتتحدث العدادات فوراً
   document.getElementById("srch").value = "";
   document.getElementById("fstat").value = "";
   
   renderAll(); 
 }
-
 /* ════ CLEAR FORM ════ */
 function clearForm(){
   ["f_name","f_cid","f_pass","f_card","f_car","f_dname","f_gas","f_dwage","f_in","f_out","f_time",
@@ -1110,22 +1118,18 @@ toggleTotalCustom(false);
   document.getElementById("fbadge").textContent = "جديد";
 }
 function cancelEdit(){ clearForm(); toast("تم إلغاء التعديل"); }
-
 /* ════ IS LATE ════ */
 function isLate(b){ 
   return b.status === "نشط" && b.ci && new Date(b.ci + "T00:00:00") < new Date(); 
 }
-
 /* ════ STATUS BADGE ════ */
 function statusBadge(b){
   if(isLate(b)) return `<span class="badge b-late">متأخر</span>`;
   const map = {نشط:"b-active",مكتمل:"b-done",ملغي:"b-cancel",معلق:"b-pending"};
   return `<span class="badge ${map[b.status]||"b-pending"}">${b.status}</span>`;
 }
-
 /* ════ RENDER ALL ════ */
 function renderAll(){ renderStats(); render(); }
-
 function renderStats(){
   const t   = DB.length;
   const act = DB.filter(b=>b.status==="نشط" && !isLate(b)).length;
@@ -1135,7 +1139,6 @@ function renderStats(){
   const rev = DB.reduce((s,b)=>s+(parseNum(b.total)||0),0);
   const net = DB.reduce((s,b)=>s+((parseNum(b.total)||0)-(parseNum(b.supplier_net)||0)-(parseNum(b.dwage)||0)-(parseNum(b.gas)||0)),0);
   const rem = DB.reduce((s,b)=>s+Math.max(0,(parseNum(b.total)||0)-(parseNum(b.paid)||0)),0);
-
   document.getElementById("st0").textContent = t;
   document.getElementById("st1").textContent = act;
   document.getElementById("st2").textContent = lt;
@@ -1145,10 +1148,37 @@ function renderStats(){
   document.getElementById("st7").textContent = numFmt(net)+" ج.م";
   document.getElementById("st6").textContent = numFmt(rem)+" ج.م";
 }
-
+function dateInRange(dateStr, range){
+  if(!dateStr || !range) return true;
+  const d = new Date(dateStr + "T00:00:00");
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  if(range==="today") return d.getTime()===now.getTime();
+  if(range==="week"){ const cut = new Date(now); cut.setDate(cut.getDate()-7); return d >= cut && d <= now; }
+  if(range==="month"){ const cut = new Date(now); cut.setMonth(cut.getMonth()-1); return d >= cut && d <= now; }
+  if(range==="year"){ const cut = new Date(now); cut.setFullYear(cut.getFullYear()-1); return d >= cut && d <= now; }
+  return true;
+}
+function resetFilters(){
+  document.getElementById("srch").value = "";
+  document.getElementById("fdate").value = "";
+  document.getElementById("fdateRange").value = "";
+  document.getElementById("fstat").value = "";
+  render();
+}
+function setSort(key){
+  if(sortKey === key){ sortDir = -sortDir; } else { sortKey = key; sortDir = 1; }
+  ["id","name","car","ci","co","days","total","rem","status"].forEach(k=>{
+    const el = document.getElementById("sortIcon_"+k);
+    if(el) el.textContent = (k===sortKey) ? (sortDir===1?"▲":"▼") : "";
+  });
+  render();
+}
 function render(){
   const q  = document.getElementById("srch").value.trim().toLowerCase();
   const sf = document.getElementById("fstat").value;
+  const fdVal = document.getElementById("fdate").value;
+  const fdRange = document.getElementById("fdateRange").value;
   let list = DB.map((b,i)=>({...b,_i:i}));
   if(sf==="متأخر") list=list.filter(isLate);
 else if(sf==="نشط") list=list.filter(b=>b.status==="نشط" && !isLate(b));
@@ -1158,6 +1188,19 @@ if(q) list=list.filter(b=>
   (b.cid||"").toLowerCase().includes(q)||
   (b.id||"").toLowerCase().includes(q)
 );
+if(fdVal) list=list.filter(b=> b.co===fdVal || b.ci===fdVal);
+if(fdRange) list=list.filter(b=> dateInRange(b.co,fdRange) || dateInRange(b.ci,fdRange));
+  if(sortKey){
+    list.sort((a,b)=>{
+      let va, vb;
+      if(sortKey==="rem"){ va = Math.max(0,(parseNum(a.total)||0)-(parseNum(a.paid)||0)); vb = Math.max(0,(parseNum(b.total)||0)-(parseNum(b.paid)||0)); }
+      else if(sortKey==="total" || sortKey==="days"){ va = parseNum(a[sortKey]); vb = parseNum(b[sortKey]); }
+      else { va = (a[sortKey]||"").toString().toLowerCase(); vb = (b[sortKey]||"").toString().toLowerCase(); }
+      if(va < vb) return -1*sortDir;
+      if(va > vb) return 1*sortDir;
+      return 0;
+    });
+  }
   document.getElementById("tblSub").textContent = `${list.length} حجز`;
   const tbody = document.getElementById("tbody");
   if(!list.length){
@@ -1185,7 +1228,6 @@ if(q) list=list.filter(b=>
       </td>
     </tr>`).join("");
 }
-
 /* ════ MODAL ════ */
 function openModal(idx){
   curModal = idx;
@@ -1214,6 +1256,8 @@ function openModal(idx){
       ${b.company_net!==undefined?`<div class="di"><div class="dl">صافي دخل الشركة</div><div class="dv" style="color:var(--green);font-size:16px">${numFmt(b.company_net)} ج.م</div></div>`:""}
       ${b.km_cost?`<div class="di full"><div class="dl">نظام الكيلومتر</div><div class="dv" style="color:var(--red)">مشي ${numFmt(b.km_actual)} كم — زيادة ${numFmt(b.km_extra)} كم — تكلفة زيادة: ${numFmt(b.km_cost)} ج.م</div></div>`:""}
       ${b.notes?`<div class="di full"><div class="dl">ملاحظات</div><div class="dv" style="white-space:pre-line">${b.notes}</div></div>`:""}
+      ${b.created_by?`<div class="di"><div class="dl">أضيف بواسطة</div><div class="dv">👤 ${b.created_by}</div></div>`:""}
+      ${b.updated_by?`<div class="di"><div class="dl">آخر تعديل بواسطة</div><div class="dv">👤 ${b.updated_by}</div></div>`:""}
     </div>`;
   document.getElementById("detailOv").classList.add("open");
 }
@@ -1224,13 +1268,11 @@ function editFromModal(){
   editBooking(curModal);
 }
 function delFromModal(){ if(curModal===null)return; closeModal(); delBooking(curModal); }
-
 /* ════ EDIT / DELETE ════ */
 function editBooking(idx){
   editIdx = idx;
   const bk = DB[idx];
   if(!bk) return;
-
   document.getElementById("f_name").value  = bk.name||"";
   document.getElementById("f_cid").value   = bk.cid||"";
   document.getElementById("f_pass").value  = bk.pass||"";
@@ -1281,7 +1323,6 @@ document.getElementById("f_car").value   = bk.car||"";
   document.getElementById("fbadge").textContent = "تعديل";
   document.querySelector(".sidebar").scrollTop = 0;
 }
-
 function delBooking(idx){
   pendingDelIdx = idx;
   document.getElementById("delName").textContent = DB[idx].name;
@@ -1293,16 +1334,21 @@ function confirmDel(){
   const idx = pendingDelIdx;
   pendingDelIdx = null;
   document.getElementById("delDlg").classList.remove("open");
-  DB.splice(idx,1);
+  const removed = DB.splice(idx,1)[0];
+  if(removed){
+    removed.deleted_at = new Date().toISOString();
+    removed.deleted_by = sessionStorage.getItem("tcUser") || "—";
+    DB_TRASH.unshift(removed);
+    saveTrash();
+  }
   saveDB(); renderAll();
-  toast("🗑️ تم حذف الحجز");
+  toast("🗑️ تم نقل الحجز لسلة المهملات");
   if(editIdx===idx) clearForm();
 }
 function cancelDel(){
   pendingDelIdx = null;
   document.getElementById("delDlg").classList.remove("open");
 }
-
 /* ════ DELETE ALL (needs password) ════ */
 function openDelAll(){
   document.getElementById("delAllPw").value="";
@@ -1311,7 +1357,7 @@ function openDelAll(){
 function closeDelAll(){ document.getElementById("delAllDlg").classList.remove("open"); }
 function confirmDelAll(){
   const pw = document.getElementById("delAllPw").value;
-  if(pw !== PASS){
+  if(!CREDENTIALS[pw]){
     playAlert();
     toast("❌ كلمة المرور غلط");
     closeDelAll();
@@ -1319,10 +1365,13 @@ function confirmDelAll(){
     setTimeout(()=>{ sessionStorage.removeItem("tcAuth"); location.reload(); }, 1200);
     return;
   }
+  const now = new Date().toISOString();
+  const who = sessionStorage.getItem("tcUser") || "—";
+  DB.forEach(b=>{ b.deleted_at = now; b.deleted_by = who; DB_TRASH.unshift(b); });
+  saveTrash();
   DB=[];  saveDB(); renderAll(); closeDelAll();
-  toast("🗑️ تم حذف جميع البيانات");
+  toast("🗑️ تم نقل جميع البيانات لسلة المهملات");
 }
-
 /* ════ PRINT ════ */
 function printFromModal(){
   const b = DB[curModal]; if(!b) return;
@@ -1365,7 +1414,6 @@ ${b.notes?`<tr><td>ملاحظات</td><td>${b.notes}</td></tr>`:""}
 </body></html>`);
   w.document.close();
 }
-
 /* ════ EXPORT ════ */
 function exportExcel(){
   if(!DB.length){ toast("لا توجد بيانات"); return; }
@@ -1382,14 +1430,12 @@ function exportExcel(){
   XLSX.writeFile(wb,`trend_${new Date().toISOString().slice(0,10)}.xlsx`);
   toast("📊 تم تصدير Excel",true);
 }
-
 function exportJSON(){
   if(!DB.length){ toast("لا توجد بيانات"); return; }
   const json = JSON.stringify(DB, null, 2);
   dl(new Blob([json],{type:"application/json"}),`trend_backup_${new Date().toISOString().slice(0,10)}.json`);
   toast("💾 تم تصدير JSON — احتفظ بالملف بأمان",true);
 }
-
 function importJSON(inp){
   const f = inp.files[0]; if(!f) return;
   const r = new FileReader();
@@ -1424,9 +1470,53 @@ function closeCombo(){
 document.addEventListener("click", e=>{
   if(!e.target.closest(".combo-wrap")) closeCombo();
 });
-/* ════ CAR STATS ════ */
-let csData = [];
+/* ════ TRASH ════ */
+function openTrash(){
+  renderTrashList();
+  document.getElementById("trashOv").classList.add("open");
+}
+function closeTrash(){ document.getElementById("trashOv").classList.remove("open"); }
 
+function renderTrashList(){
+  const el = document.getElementById("trashList");
+  if(!DB_TRASH.length){
+    el.innerHTML = `<div class="cs-empty">♻️ سلة المهملات فاضية</div>`;
+    return;
+  }
+  el.innerHTML = DB_TRASH.map((b,i)=>`
+    <div class="cs-row" style="cursor:default">
+      <div class="cs-head" style="flex-wrap:wrap">
+        <div class="cs-name">🚗 ${b.name||"—"} <span class="cs-count">${b.id||"—"}</span></div>
+        <div class="cs-nums" style="gap:10px">
+          <span style="align-items:flex-start">
+            <span style="color:var(--mu)">${b.car||"—"}</span>
+            <b style="font-size:10px;color:var(--mu);font-weight:600">اتمسح بواسطة ${b.deleted_by||"—"} — ${dtFmt((b.deleted_at||"").slice(0,10))}</b>
+          </span>
+          <button class="abtn g" style="width:auto;padding:6px 12px" onclick="restoreFromTrash(${i})">↺ استرجاع</button>
+          <button class="abtn r" style="width:auto;padding:6px 12px" onclick="deleteForeverFromTrash(${i})">🗑️ حذف نهائي</button>
+        </div>
+      </div>
+    </div>`).join("");
+}
+
+function restoreFromTrash(i){
+  const item = DB_TRASH[i];
+  if(!item) return;
+  delete item.deleted_at;
+  delete item.deleted_by;
+  DB.push(item);
+  DB_TRASH.splice(i,1);
+  saveDB(); saveTrash(); renderAll(); renderTrashList();
+  toast("✅ تم استرجاع الحجز",true);
+}
+
+function deleteForeverFromTrash(i){
+  if(!confirm("متأكد إنك عايز تمسح الحجز ده نهائي؟ الخطوة دي مفيش رجوع فيها.")) return;
+  DB_TRASH.splice(i,1);
+  saveTrash(); renderTrashList();
+  toast("🗑️ تم الحذف النهائي");
+}
+let csData = [];
 function normalizeCarName(name){
   return (name||"")
     .trim().replace(/\s+/g," ")
@@ -1434,7 +1524,6 @@ function normalizeCarName(name){
     .replace(/[ًٌٍَُِّْ]/g,"")
     .toLowerCase();
 }
-
 function computeCarStats(from, to){
   const groups = {};
   DB.forEach(b=>{
@@ -1455,7 +1544,6 @@ function computeCarStats(from, to){
   });
   return Object.values(groups).sort((a,b)=>b.count-a.count);
 }
-
 function openCarStats(){
   document.getElementById("csFrom").value = "";
   document.getElementById("csTo").value = "";
@@ -1504,6 +1592,14 @@ function toggleCsDetail(i){
 }
 /* ════ INIT RENDER ════ */
 renderAll();
+
+/* ════ BASIC PROTECTION (لردع الفضول العادي فقط) ════ */
+document.addEventListener("contextmenu", e => e.preventDefault());
+document.addEventListener("keydown", e => {
+  if(e.key === "F12") e.preventDefault();
+  if(e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) e.preventDefault();
+  if(e.ctrlKey && e.key === "u") e.preventDefault();
+});
 </script>
 </body>
 </html>
