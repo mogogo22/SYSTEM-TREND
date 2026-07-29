@@ -1500,7 +1500,9 @@ function renderTrashList(){
     el.innerHTML = `<div class="cs-empty">♻️ سلة المهملات فاضية</div>`;
     return;
   }
-  el.innerHTML = DB_TRASH.map((b,i)=>`
+  el.innerHTML = `
+    <button class="abtn r full" style="margin-bottom:12px;" onclick="emptyTrash()">🗑️ إفراغ سلة المهملات بالكامل (${DB_TRASH.length})</button>
+  ` + DB_TRASH.map((b,i)=>`
     <div class="cs-row" style="cursor:default">
       <div class="cs-head" style="flex-wrap:wrap">
         <div class="cs-name">🚗 ${b.name||"—"} <span class="cs-count">${b.id||"—"}</span></div>
@@ -1516,6 +1518,14 @@ function renderTrashList(){
     </div>`).join("");
 }
 
+function emptyTrash(){
+  if(!DB_TRASH.length) return;
+  if(!confirm(`متأكد إنك عايز تفرّغ سلة المهملات بالكامل؟ هيتم حذف ${DB_TRASH.length} حجز نهائياً ومفيش رجوع فيها.`)) return;
+  DB_TRASH = [];
+  saveTrash();
+  renderTrashList();
+  toast("🗑️ تم إفراغ سلة المهملات بالكامل", true);
+}
 function restoreFromTrash(i){
   const item = DB_TRASH[i];
   if(!item) return;
