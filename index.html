@@ -494,6 +494,10 @@ textarea.fi{resize:vertical;min-height:56px}
         <input class="fi" id="f_supplier_net" type="text" inputmode="numeric" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'');calc()">
       </div>
       <div class="fg">
+        <label>دخل المورد الشهري <span style="color:var(--mu);font-weight:400">(اختياري — يحسب نصيب هذا الحجز تلقائياً)</span></label>
+        <input class="fi" id="f_supplier_monthly" type="text" inputmode="numeric" placeholder="مثال: 25000" oninput="this.value=this.value.replace(/[^0-9]/g,'');calcSupplierFromMonthly();">
+      </div>
+      <div class="fg">
         <label>صافي دخل الشركة</label>
         <input class="fi fi-green" id="f_company_net" readonly placeholder="يُحسب تلقائياً">
       </div>
@@ -626,6 +630,7 @@ textarea.fi{resize:vertical;min-height:56px}
     </div>
     <div class="mbody">
       <div class="cs-filters">
+        <div class="cs-fg"><label>بحث باسم العربية</label><input type="text" id="csCarSearch" placeholder="مثال: كامري" oninput="applyCarStatsFilter()"></div>
         <div class="cs-fg"><label>من تاريخ</label><input type="date" id="csFrom"></div>
         <div class="cs-fg"><label>إلى تاريخ</label><input type="date" id="csTo"></div>
         <button class="cs-fbtn" onclick="applyCarStatsFilter()">تطبيق</button>
@@ -926,10 +931,20 @@ function previewImg(inp){
   };
   r.readAsDataURL(f);
 }
+function calcSupplierFromMonthly(){
+  const monthly = parseNum(document.getElementById("f_supplier_monthly").value);
+  const days = parseInt(document.getElementById("f_days").value) || 0;
+  if(monthly > 0 && days > 0){
+    const perBooking = monthly / days;
+    document.getElementById("f_supplier_net").value = perBooking.toFixed(2);
+    calcCompanyNet();
+  }
+}
 function calc(){
   const co = document.getElementById("f_out").value;
   const days = parseInt(document.getElementById("f_days").value) || 0;
   const isTrip = document.getElementById("f_rent_type").value === "مشوار";
+  calcSupplierFromMonthly();
 
   if(!isTrip && !inCustom){
     if(co && days > 0){
@@ -1044,6 +1059,7 @@ dname:   document.getElementById("f_dname").value.trim(),
 gas:          parseFloat(document.getElementById("f_gas").value)||0,
     dwage:        parseFloat(document.getElementById("f_dwage").value)||0,
     supplier_net: parseFloat(document.getElementById("f_supplier_net").value)||0,
+    supplier_monthly: parseFloat(document.getElementById("f_supplier_monthly").value)||0,
     company_net:  parseNum(document.getElementById("f_company_net").value),
     ci, co,
     time:    document.getElementById("f_time").value,
@@ -1085,7 +1101,7 @@ gas:          parseFloat(document.getElementById("f_gas").value)||0,
 /* ════ CLEAR FORM ════ */
 function clearForm(){
   ["f_name","f_cid","f_pass","f_card","f_car","f_dname","f_gas","f_dwage","f_in","f_out","f_time",
-   "f_days","f_ppd","f_total","f_paid","f_rem","f_supplier_net","f_company_net","f_notes",
+   "f_days","f_ppd","f_total","f_paid","f_rem","f_supplier_net","f_supplier_monthly","f_company_net","f_notes",
    "f_km_allow","f_km_price","f_km_out","f_km_in","f_km_actual","f_km_extra","f_km_cost"].forEach(id=>{
     const e = document.getElementById(id); if(e) e.value = "";
   });
@@ -1286,6 +1302,7 @@ document.getElementById("f_car").value   = bk.car||"";
   document.getElementById("f_gas").value   = bk.gas||"";
   document.getElementById("f_dwage").value = bk.dwage||"";
   document.getElementById("f_supplier_net").value = bk.supplier_net||"";
+  document.getElementById("f_supplier_monthly").value = bk.supplier_monthly||"";
   document.getElementById("f_days").value  = bk.days||"";
   document.getElementById("f_out").value   = bk.co||"";
   document.getElementById("f_time").value  = bk.time||"";
@@ -1547,6 +1564,7 @@ function computeCarStats(from, to){
 function openCarStats(){
   document.getElementById("csFrom").value = "";
   document.getElementById("csTo").value = "";
+  document.getElementById("csCarSearch").value = "";
   applyCarStatsFilter();
   document.getElementById("carStatsOv").classList.add("open");
 }
@@ -1554,12 +1572,15 @@ function closeCarStats(){ document.getElementById("carStatsOv").classList.remove
 function clearCarStatsFilter(){
   document.getElementById("csFrom").value = "";
   document.getElementById("csTo").value = "";
+  document.getElementById("csCarSearch").value = "";
   applyCarStatsFilter();
 }
 function applyCarStatsFilter(){
   const from = document.getElementById("csFrom").value;
   const to   = document.getElementById("csTo").value;
+  const searchTerm = normalizeCarName(document.getElementById("csCarSearch").value);
   csData = computeCarStats(from, to);
+  if(searchTerm) csData = csData.filter(g => normalizeCarName(g.display).includes(searchTerm));
   renderCarStatsList();
 }
 function renderCarStatsList(){
