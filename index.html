@@ -1521,20 +1521,41 @@ function renderTrashList(){
 function emptyTrash(){
   if(!DB_TRASH.length) return;
   if(!confirm(`متأكد إنك عايز تفرّغ سلة المهملات بالكامل؟ هيتم حذف ${DB_TRASH.length} حجز نهائياً ومفيش رجوع فيها.`)) return;
-  DB_TRASH = [];
-  saveTrash();
-  renderTrashList();
-  toast("🗑️ تم إفراغ سلة المهملات بالكامل", true);
+  trashRef.set([]).then(function(){
+    DB_TRASH = [];
+    localStorage.setItem(TRASH_KEY, JSON.stringify(DB_TRASH));
+    renderTrashList();
+    toast("🗑️ تم إفراغ سلة المهملات بالكامل", true);
+  }).catch(function(err){
+    console.error("Empty trash error:", err);
+    toast("❌ حصل خطأ أثناء الإفراغ، حاول تاني");
+  });
 }
 function restoreFromTrash(i){
   const item = DB_TRASH[i];
   if(!item) return;
   delete item.deleted_at;
   delete item.deleted_by;
-  DB.push(item);
-  DB_TRASH.splice(i,1);
-  saveDB(); saveTrash(); renderAll(); renderTrashList();
-  toast("✅ تم استرجاع الحجز",true);
+
+  const newDB = [...DB, item];
+  const newTrash = DB_TRASH.slice();
+  newTrash.splice(i,1);
+
+  Promise.all([
+    rtdbRef.set(newDB),
+    trashRef.set(newTrash)
+  ]).then(function(){
+    DB = newDB;
+    DB_TRASH = newTrash;
+    localStorage.setItem(DB_KEY, JSON.stringify(DB));
+    localStorage.setItem(TRASH_KEY, JSON.stringify(DB_TRASH));
+    renderAll();
+    renderTrashList();
+    toast("✅ تم استرجاع الحجز",true);
+  }).catch(function(err){
+    console.error("Restore error:", err);
+    toast("❌ حصل خطأ أثناء الاسترجاع، حاول تاني");
+  });
 }
 
 function deleteForeverFromTrash(i){
