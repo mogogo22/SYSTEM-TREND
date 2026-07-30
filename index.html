@@ -714,7 +714,7 @@ let curModal  = null;
 let imgData   = "";
 let inCustom = false;
 let totalCustom = false;
-let sortKey = null;
+let sortKey = 'id';
 let sortDir = 1;
 function calcKm(){
   const days     = parseInt(document.getElementById("f_days").value) || 0;
@@ -820,6 +820,7 @@ function initApp(){
   document.getElementById("fdate").value = "";
   document.getElementById("fdateRange").value = "";
   startClock();
+  document.getElementById("sortIcon_id").textContent = "▲";
   renderAll();
   checkAlerts();
   startFirestoreSync();
