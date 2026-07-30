@@ -929,8 +929,8 @@ function calcSupplierFromMonthly(){
   const monthly = parseNum(document.getElementById("f_supplier_monthly").value);
   const days = parseInt(document.getElementById("f_days").value) || 0;
   if(monthly > 0 && days > 0){
-    const perBooking = monthly / days;
-    document.getElementById("f_supplier_net").value = perBooking.toFixed(2);
+    const perBooking = Math.round(monthly / days);
+    document.getElementById("f_supplier_net").value = perBooking;
     calcCompanyNet();
   }
 }
