@@ -659,6 +659,7 @@ textarea.fi{resize:vertical;min-height:56px}
 /* ════ CONFIG ════ */
 const DB_KEY = "trendcar_v1";
 const TRASH_KEY = "trendcar_trash_v1";
+const SM_KEY = "trendcar_supplier_monthly_v1";
 const CREDENTIALS = {
   "tarektrend54": "ريهام",
   "mogotrend54": "مهند",
@@ -679,6 +680,7 @@ if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const rtdb = firebase.database();
 const rtdbRef = rtdb.ref("trend_system/bookings");
 const trashRef = rtdb.ref("trend_system/bookings_trash");
+const smRef = rtdb.ref("trend_system/supplier_monthly");
 let rtdbSuppressNext = false;
 
 function startTrashSync(){
@@ -694,6 +696,10 @@ function startFirestoreSync(){
   rtdbRef.on("value", function(snapshot){
     const data = snapshot.val();
     const items = Array.isArray(data) ? data : (data ? Object.values(data) : []);
+    if(items.length === 0 && DB.length > 0){
+      rtdbRef.set(DB).catch(function(err){ console.error("RTDB recover-save error:", err); });
+      return;
+    }
     DB = items;
     localStorage.setItem(DB_KEY, JSON.stringify(DB));
     renderAll();
@@ -702,6 +708,7 @@ function startFirestoreSync(){
 /* ════ STATE ════ */
 let DB        = JSON.parse(localStorage.getItem(DB_KEY) || "[]");
 let DB_TRASH  = JSON.parse(localStorage.getItem(TRASH_KEY) || "[]");
+let SUPPLIER_MONTHLY = JSON.parse(localStorage.getItem(SM_KEY) || "{}");
 let editIdx   = null;
 let curModal  = null;
 let imgData   = "";
@@ -817,6 +824,7 @@ function initApp(){
   checkAlerts();
   startFirestoreSync();
   startTrashSync();
+  startSupplierMonthlySync();
 }
 /* ════ CLOCK ════ */
 function startClock(){
@@ -831,6 +839,21 @@ function saveDB(){
 function saveTrash(){
   localStorage.setItem(TRASH_KEY, JSON.stringify(DB_TRASH));
   trashRef.set(DB_TRASH).catch(function(err){ console.error("RTDB trash save error:", err); });
+}
+function saveSupplierMonthly(){
+  localStorage.setItem(SM_KEY, JSON.stringify(SUPPLIER_MONTHLY));
+  smRef.set(SUPPLIER_MONTHLY).catch(function(err){ console.error("RTDB supplier-monthly save error:", err); });
+}
+function startSupplierMonthlySync(){
+  smRef.on("value", function(snapshot){
+    const data = snapshot.val() || {};
+    if(Object.keys(data).length === 0 && Object.keys(SUPPLIER_MONTHLY).length > 0){
+      smRef.set(SUPPLIER_MONTHLY).catch(function(err){ console.error("RTDB supplier-monthly recover-save error:", err); });
+      return;
+    }
+    SUPPLIER_MONTHLY = data;
+    localStorage.setItem(SM_KEY, JSON.stringify(SUPPLIER_MONTHLY));
+  }, function(err){ console.error("RTDB supplier-monthly sync error:", err); });
 }
 /* ════ TOAST ════ */
 let toastT;
@@ -1581,9 +1604,15 @@ function computeCarStats(from, to){
     if(to && d && d > to) return;
     const key = normalizeCarName(b.car);
     if(!key) return;
-    if(!groups[key]) groups[key] = {display:b.car,count:0,revenue:0,supplier:0,wage:0,gas:0,net:0,bookings:[]};
+    if(!groups[key]) groups[key] = {key,display:b.car,count:0,revenue:0,supplier:0,wage:0,gas:0,net:0,bookings:[],byMonth:{}};
     const g = groups[key];
     g.count++;
+    const mk = (b.co||b.ci||"").slice(0,7);
+    if(mk){
+      if(!g.byMonth[mk]) g.byMonth[mk] = {revenue:0,count:0};
+      g.byMonth[mk].revenue += parseNum(b.total);
+      g.byMonth[mk].count++;
+    }
     g.revenue  += parseNum(b.total);
     g.supplier += parseNum(b.supplier_net);
     g.wage     += parseNum(b.dwage);
@@ -1632,6 +1661,22 @@ function renderCarStatsList(){
         </div>
       </div>
       <div class="cs-detail" id="csdet_${i}">
+        ${Object.keys(g.byMonth).length ? `<div style="margin-bottom:10px">
+          <div style="font-size:11px;font-weight:900;color:var(--mu);margin-bottom:6px">📆 الأداء الشهري (مقابل تكلفة المورد)</div>
+          ${Object.entries(g.byMonth).sort((a,b)=>b[0].localeCompare(a[0])).map(([mk,mv])=>{
+            const storeKey = g.key+'|'+mk;
+            const cost = SUPPLIER_MONTHLY[storeKey]||0;
+            const net = mv.revenue - cost;
+            const safeId = (g.key+'_'+mk).replace(/[^a-zA-Z0-9_]/g,'');
+            return `<div class="cs-drow" style="align-items:center">
+              <span>${monthLabel(mk)} (${mv.count} حجز) — إيراد ${numFmt(mv.revenue)} ج.م</span>
+              <span style="display:flex;align-items:center;gap:6px">
+                تكلفة المورد: <input class="fi" style="width:90px;padding:4px 8px;font-size:11px" value="${cost||''}" placeholder="0" onchange="updateSupplierMonthly('${storeKey}', this.value, '${safeId}')">
+                <b id="smNet_${safeId}" style="color:${net>=0?'var(--green)':'var(--red)'}">${net>=0?'+':''}${numFmt(net)} ج.م</b>
+              </span>
+            </div>`;
+          }).join('')}
+        </div>` : ''}
         ${g.bookings.map(b=>`
           <div class="cs-drow">
             <span>${b.name} — ${dtFmt(b.co)} → ${dtFmt(b.ci)}</span>
@@ -1639,6 +1684,25 @@ function renderCarStatsList(){
           </div>`).join("")}
       </div>
     </div>`).join("");
+}
+function monthLabel(mk){
+  if(!mk) return "—";
+  const parts = mk.split("-");
+  const d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, 1);
+  return d.toLocaleDateString("ar-EG",{year:"numeric",month:"long"});
+}
+function updateSupplierMonthly(storeKey, value, safeId){
+  const v = parseNum(value);
+  if(v > 0) SUPPLIER_MONTHLY[storeKey] = v; else delete SUPPLIER_MONTHLY[storeKey];
+  saveSupplierMonthly();
+  const parts = storeKey.split("|");
+  const carKey = parts[0], mk = parts[1];
+  const g = csData.find(x=>x.key===carKey);
+  if(g && g.byMonth[mk]){
+    const net = g.byMonth[mk].revenue - v;
+    const el = document.getElementById("smNet_"+safeId);
+    if(el){ el.textContent = (net>=0?"+":"")+numFmt(net)+" ج.م"; el.style.color = net>=0 ? "var(--green)" : "var(--red)"; }
+  }
 }
 function toggleCsDetail(i){
   document.getElementById(`csdet_${i}`).classList.toggle("open");
