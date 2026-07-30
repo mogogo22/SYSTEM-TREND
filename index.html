@@ -454,7 +454,7 @@ textarea.fi{resize:vertical;min-height:56px}
           <option value="نشط">🟢 نشط</option>
           <option value="مكتمل">🔵 مكتمل</option>
           <option value="ملغي">🔴 ملغي</option>
-          <option value="معلق">🟡 معلق</option>
+          <option value="محجوز">🟡 محجوز</option>
         </select>
       </div>
       <!-- الكيلومتر -->
@@ -541,7 +541,7 @@ textarea.fi{resize:vertical;min-height:56px}
             <option value="نشط">نشط</option>
             <option value="مكتمل">مكتمل</option>
             <option value="ملغي">ملغي</option>
-            <option value="معلق">معلق</option>
+            <option value="محجوز">محجوز</option>
             <option value="متأخر">متأخر</option>
           </select>
           <button class="fsel" onclick="resetFilters()" style="cursor:pointer;">↺ إعادة تعيين</button>
@@ -683,10 +683,6 @@ function startTrashSync(){
   trashRef.on("value", function(snapshot){
     const data = snapshot.val();
     const items = Array.isArray(data) ? data : (data ? Object.values(data) : []);
-    if(items.length === 0 && DB_TRASH.length > 0){
-      trashRef.set(DB_TRASH).catch(function(err){ console.error("RTDB trash recover-save error:", err); });
-      return;
-    }
     DB_TRASH = items;
     localStorage.setItem(TRASH_KEY, JSON.stringify(DB_TRASH));
     if(document.getElementById("trashOv").classList.contains("open")) renderTrashList();
@@ -696,10 +692,6 @@ function startFirestoreSync(){
   rtdbRef.on("value", function(snapshot){
     const data = snapshot.val();
     const items = Array.isArray(data) ? data : (data ? Object.values(data) : []);
-    if(items.length === 0 && DB.length > 0){
-      rtdbRef.set(DB).catch(function(err){ console.error("RTDB recover-save error:", err); });
-      return;
-    }
     DB = items;
     localStorage.setItem(DB_KEY, JSON.stringify(DB));
     renderAll();
@@ -737,20 +729,20 @@ const cost         = extra > 0 ? Math.round(extra * kmPrice) : 0;
 }
 
 function checkAlerts(){
-  const pending = DB.filter(b => b.status === "معلق");
+  const pending = DB.filter(b => b.status === "محجوز");
   const late    = DB.filter(isLate);
   if(!pending.length && !late.length) return;
   let html = "";
   if(pending.length){
     html += `<div class="amodal-sec">
-      <div class="amodal-title" style="color:var(--orange)">⚠️ حجوزات معلقة (${pending.length})</div>`;
+      <div class="amodal-title" style="color:var(--orange)">⚠️ حجوزات محجوزة (${pending.length})</div>`;
     pending.forEach(b=>{
       const since = b.at ? dtFmt(b.at.slice(0,10)) : "—";
       html += `<div class="amodal-item">
         <strong>👤 ${b.name}</strong>
         <span class="alabel">رقم الحجز</span> <span class="aval">${b.id}</span><br>
         <span class="alabel">السيارة</span> <span class="aval">${b.car}</span><br>
-        <span class="alabel">معلق منذ</span> <span class="aval orange">${since}</span>
+        <span class="alabel">محجوز منذ</span> <span class="aval orange">${since}</span>
       </div>`;
     });
     html += `</div>`;
@@ -1141,7 +1133,7 @@ function isLate(b){
 /* ════ STATUS BADGE ════ */
 function statusBadge(b){
   if(isLate(b)) return `<span class="badge b-late">متأخر</span>`;
-  const map = {نشط:"b-active",مكتمل:"b-done",ملغي:"b-cancel",معلق:"b-pending"};
+  const map = {نشط:"b-active",مكتمل:"b-done",ملغي:"b-cancel",محجوز:"b-pending"};
   return `<span class="badge ${map[b.status]||"b-pending"}">${b.status}</span>`;
 }
 /* ════ RENDER ALL ════ */
@@ -1521,14 +1513,22 @@ function renderTrashList(){
 function emptyTrash(){
   if(!DB_TRASH.length) return;
   if(!confirm(`متأكد إنك عايز تفرّغ سلة المهملات بالكامل؟ هيتم حذف ${DB_TRASH.length} حجز نهائياً ومفيش رجوع فيها.`)) return;
+
+  // نوقف الاستماع الحي مؤقتاً عشان مايحصلش تعارض وقت الكتابة
+  trashRef.off("value");
+
+  DB_TRASH = [];
+  localStorage.setItem(TRASH_KEY, JSON.stringify(DB_TRASH));
+  renderTrashList();
+
   trashRef.set([]).then(function(){
-    DB_TRASH = [];
-    localStorage.setItem(TRASH_KEY, JSON.stringify(DB_TRASH));
-    renderTrashList();
     toast("🗑️ تم إفراغ سلة المهملات بالكامل", true);
   }).catch(function(err){
     console.error("Empty trash error:", err);
     toast("❌ حصل خطأ أثناء الإفراغ، حاول تاني");
+  }).finally(function(){
+    // نرجع نفعّل الاستماع الحي بعد ما نتأكد إن الكتابة خلصت
+    startTrashSync();
   });
 }
 function restoreFromTrash(i){
