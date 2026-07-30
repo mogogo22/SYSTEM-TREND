@@ -104,6 +104,10 @@ textarea.fi{resize:vertical;min-height:56px}
 .fi-green:focus{border-color:var(--br);box-shadow:none}
 .fi-red{background:var(--s3);color:var(--red);font-weight:900;cursor:default}
 .fi-red:focus{border-color:var(--br);box-shadow:none}
+.chk-row{display:flex;align-items:center;gap:9px;background:var(--s2);border:1.5px solid var(--br);border-radius:var(--r);padding:9px 11px;margin-top:0;margin-bottom:9px;cursor:pointer;transition:var(--tr)}
+.chk-row:hover{border-color:var(--br2)}
+.chk-row input[type="checkbox"]{width:16px;height:16px;accent-color:var(--gold);flex-shrink:0}
+.chk-row span{font-size:11px;color:var(--mu);font-weight:700}
 /* car image upload */
 .img-upload{border:1.5px dashed var(--br2);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;transition:var(--tr);background:var(--s2);position:relative;overflow:hidden}
 .img-upload:hover{border-color:var(--gold);background:rgba(200,151,58,.04)}
@@ -411,12 +415,10 @@ textarea.fi{resize:vertical;min-height:56px}
         <input class="fi" type="date" id="f_out" onchange="calc()">
       </div>
       <div class="fg">
-        <label style="display:flex;align-items:center;justify-content:space-between">
-          تاريخ دخول السيارة
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;margin-top:5px;cursor:pointer;width:fit-content">
-          <input type="checkbox" id="inCustomChk" onchange="toggleInCustom(this.checked)" style="width:16px;height:16px;accent-color:var(--gold)">
-          <span style="font-size:11px;color:var(--mu);font-weight:700">تخصيص تاريخ الدخول يدوياً</span>
+        <label>تاريخ دخول السيارة</label>
+        <label class="chk-row">
+          <input type="checkbox" id="inCustomChk" onchange="toggleInCustom(this.checked)">
+          <span>تخصيص تاريخ الدخول يدوياً</span>
         </label>
         <input class="fi fi-ro" id="f_in" placeholder="يُحسب تلقائياً" readonly>
       </div>
@@ -428,9 +430,9 @@ textarea.fi{resize:vertical;min-height:56px}
         <label>سعر الإيجار / يوم <span class="req">*</span></label>
         <input class="fi" id="f_ppd" type="text" inputmode="numeric" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'');calc()">
       </div>
-      <label style="display:flex;align-items:center;gap:8px;margin-top:5px;cursor:pointer;width:fit-content">
-        <input type="checkbox" id="totalCustomChk" onchange="toggleTotalCustom(this.checked)" style="width:16px;height:16px;accent-color:var(--gold)">
-        <span style="font-size:11px;color:var(--mu);font-weight:700">تخصيص الإجمالي يدوياً</span>
+      <label class="chk-row">
+        <input type="checkbox" id="totalCustomChk" onchange="toggleTotalCustom(this.checked)">
+        <span>تخصيص الإجمالي يدوياً</span>
       </label>
       <div class="firow">
         <div class="fg">
@@ -1103,11 +1105,10 @@ function clearForm(){
 document.getElementById("totalCustomChk").checked = false;
 toggleInCustom(false);
 toggleTotalCustom(false);
-  const inEl = document.getElementById("f_in");
+const inEl = document.getElementById("f_in");
   inEl.setAttribute("readonly",true);
   inEl.type = "text";
   inEl.classList.add("fi-ro");
-  inEl.classList.remove("fi");
   const totalEl = document.getElementById("f_total");
   totalEl.setAttribute("readonly",true);
   totalEl.classList.add("fi-green");
