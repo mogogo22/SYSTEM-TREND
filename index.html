@@ -414,7 +414,7 @@ textarea.fi{resize:vertical;min-height:56px}
         <label id="outLabel">تاريخ خروج السيارة <span class="req">*</span></label>
         <input class="fi" type="date" id="f_out" onchange="calc()">
       </div>
-      <div class="fg">
+      <div class="fg" id="dateInFg">
         <label>تاريخ دخول السيارة</label>
         <label class="chk-row">
           <input type="checkbox" id="inCustomChk" onchange="toggleInCustom(this.checked)">
@@ -434,19 +434,19 @@ textarea.fi{resize:vertical;min-height:56px}
         <input type="checkbox" id="totalCustomChk" onchange="toggleTotalCustom(this.checked)">
         <span>تخصيص الإجمالي يدوياً</span>
       </label>
-      <div class="firow">
-        <div class="fg">
+      <div class="firow" id="totalPaidRow">
+        <div class="fg" id="totalFg">
           <label style="display:flex;align-items:center;justify-content:space-between">
             إجمالي الإيجار
           </label>
           <input class="fi fi-green" id="f_total" readonly>
         </div>
-        <div class="fg">
+        <div class="fg" id="paidFg">
           <label>المدفوع</label>
           <input class="fi" id="f_paid" type="text" inputmode="numeric" placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'');calcRem()">
         </div>
       </div>
-      <div class="fg">
+      <div class="fg" id="remFg">
         <label>المتبقي</label>
         <input class="fi fi-red" id="f_rem" readonly>
       </div>
@@ -910,6 +910,9 @@ function toggleRentType(){
   const isTrip = type === "مشوار";
   document.getElementById("daysCountRow").style.display = isTrip ? "none" : "block";
   document.getElementById("outLabel").innerHTML = isTrip ? "تاريخ المشوار <span class='req'>*</span>" : "تاريخ خروج السيارة <span class='req'>*</span>";
+  document.getElementById("dateInFg").style.display = isTrip ? "none" : "block";
+  document.getElementById("totalFg").style.display = isTrip ? "none" : "block";
+  document.getElementById("remFg").style.display = isTrip ? "none" : "block";
   const inEl = document.getElementById("f_in");
   if(isTrip){
     inEl.removeAttribute("readonly");
@@ -917,26 +920,23 @@ function toggleRentType(){
     inEl.classList.add("fi");
     inEl.placeholder = "نفس اليوم (اختياري)";
     document.getElementById("f_days").value = "1";
-    document.getElementById("ppdRow").style.display = "none";
-document.getElementById("totalCustomChk").closest("label").style.display = "none";
-document.getElementById("f_supplier_net").closest(".fg").style.display = "none";
-document.getElementById("f_supplier_monthly").closest(".fg").style.display = "none";
-const totalElTrip = document.getElementById("f_total");
-totalElTrip.removeAttribute("readonly");
-totalElTrip.classList.remove("fi-green");
-totalElTrip.oninput = function(){ this.value=this.value.replace(/[^0-9]/g,''); calcRem(); calcCompanyNet(); };
+    document.getElementById("ppdRow").style.display = "block";
+    document.getElementById("ppdRow").querySelector("label").textContent = "سعر المشوار *";
+    document.getElementById("f_supplier_net").closest(".fg").style.display = "block";
+    document.getElementById("f_supplier_monthly").closest(".fg").style.display = "block";
   } else {
     inEl.setAttribute("readonly", true);
     inEl.classList.add("fi-ro");
     inEl.placeholder = "يُحسب تلقائياً";
     document.getElementById("ppdRow").style.display = "block";
-document.getElementById("totalCustomChk").closest("label").style.display = "";
-document.getElementById("f_supplier_net").closest(".fg").style.display = "";
-document.getElementById("f_supplier_monthly").closest(".fg").style.display = "";
-const totalElDays = document.getElementById("f_total");
-totalElDays.setAttribute("readonly", true);
-totalElDays.classList.add("fi-green");
-totalElDays.oninput = null;
+    document.getElementById("ppdRow").querySelector("label").textContent = "سعر الإيجار / يوم *";
+    document.getElementById("totalCustomChk").closest("label").style.display = "";
+    document.getElementById("f_supplier_net").closest(".fg").style.display = "";
+    document.getElementById("f_supplier_monthly").closest(".fg").style.display = "";
+    const totalElDays = document.getElementById("f_total");
+    totalElDays.setAttribute("readonly", true);
+    totalElDays.classList.add("fi-green");
+    totalElDays.oninput = null;
   }
   calc();
 }
@@ -999,10 +999,12 @@ function previewImg(inp){
 }
 function calcSupplierFromMonthly(){
   const monthly = parseNum(document.getElementById("f_supplier_monthly").value);
+  const isTrip = document.getElementById("f_rent_type").value === "مشوار";
   const days = parseInt(document.getElementById("f_days").value) || 0;
-  if(monthly > 0 && days > 0){
-    const perBooking = Math.round((monthly / 30) * days);
-    document.getElementById("f_supplier_net").value = perBooking;
+  if(monthly > 0){
+    const perDay = monthly / 30;
+    const share = isTrip ? Math.round(perDay) : Math.round(perDay * days);
+    document.getElementById("f_supplier_net").value = share;
     calcCompanyNet();
   }
 }
@@ -1186,6 +1188,7 @@ const inEl = document.getElementById("f_in");
   totalEl.classList.add("fi-green");
   totalEl.oninput = null;
   document.getElementById("ppdRow").style.display = "block";
+  document.getElementById("ppdRow").querySelector("label").textContent = "سعر الإيجار / يوم *";
   document.getElementById("totalCustomChk").closest("label").style.display = "";
 document.getElementById("f_supplier_net").closest(".fg").style.display = "";
 document.getElementById("f_supplier_monthly").closest(".fg").style.display = "";
