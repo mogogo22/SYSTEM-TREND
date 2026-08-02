@@ -1216,16 +1216,17 @@ function statusBadge(b){
   return `<span class="badge ${map[b.status]||"b-pending"}">${b.status}</span>`;
 }
 /* ════ RENDER ALL ════ */
-function renderAll(){ renderStats(); render(); }
-function renderStats(){
-  const t   = DB.length;
-  const act = DB.filter(b=>b.status==="نشط" && !isLate(b)).length;
-  const lt  = DB.filter(isLate).length;
-  const don = DB.filter(b=>b.status==="مكتمل").length;
-  const wd  = DB.filter(b=>b.driver==="نعم").length;
-  const rev = DB.reduce((s,b)=>s+(parseNum(b.total)||0),0);
-  const net = DB.reduce((s,b)=>s+((parseNum(b.total)||0)-(parseNum(b.supplier_net)||0)-(parseNum(b.dwage)||0)-(parseNum(b.gas)||0)),0);
-  const rem = DB.reduce((s,b)=>s+Math.max(0,(parseNum(b.total)||0)-(parseNum(b.paid)||0)),0);
+function renderAll(){ render(); }
+function renderStats(list){
+  const src = list || DB;
+  const t   = src.length;
+  const act = src.filter(b=>b.status==="نشط" && !isLate(b)).length;
+  const lt  = src.filter(isLate).length;
+  const don = src.filter(b=>b.status==="مكتمل").length;
+  const wd  = src.filter(b=>b.driver==="نعم").length;
+  const rev = src.reduce((s,b)=>s+(parseNum(b.total)||0),0);
+  const net = src.reduce((s,b)=>s+((parseNum(b.total)||0)-(parseNum(b.supplier_net)||0)-(parseNum(b.dwage)||0)-(parseNum(b.gas)||0)),0);
+  const rem = src.reduce((s,b)=>s+Math.max(0,(parseNum(b.total)||0)-(parseNum(b.paid)||0)),0);
   document.getElementById("st0").textContent = t;
   document.getElementById("st1").textContent = act;
   document.getElementById("st2").textContent = lt;
@@ -1308,6 +1309,7 @@ function getFilteredList(){
 
 function render(){
   const list = getFilteredList();
+  renderStats(list);
   document.getElementById("tblSub").textContent = `${list.length} حجز`;
   const tbody = document.getElementById("tbody");
   if(!list.length){
