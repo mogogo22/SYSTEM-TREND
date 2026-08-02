@@ -917,10 +917,26 @@ function toggleRentType(){
     inEl.classList.add("fi");
     inEl.placeholder = "نفس اليوم (اختياري)";
     document.getElementById("f_days").value = "1";
+    document.getElementById("ppdRow").style.display = "none";
+document.getElementById("totalCustomChk").closest("label").style.display = "none";
+document.getElementById("f_supplier_net").closest(".fg").style.display = "none";
+document.getElementById("f_supplier_monthly").closest(".fg").style.display = "none";
+const totalElTrip = document.getElementById("f_total");
+totalElTrip.removeAttribute("readonly");
+totalElTrip.classList.remove("fi-green");
+totalElTrip.oninput = function(){ this.value=this.value.replace(/[^0-9]/g,''); calcRem(); calcCompanyNet(); };
   } else {
     inEl.setAttribute("readonly", true);
     inEl.classList.add("fi-ro");
     inEl.placeholder = "يُحسب تلقائياً";
+    document.getElementById("ppdRow").style.display = "block";
+document.getElementById("totalCustomChk").closest("label").style.display = "";
+document.getElementById("f_supplier_net").closest(".fg").style.display = "";
+document.getElementById("f_supplier_monthly").closest(".fg").style.display = "";
+const totalElDays = document.getElementById("f_total");
+totalElDays.setAttribute("readonly", true);
+totalElDays.classList.add("fi-green");
+totalElDays.oninput = null;
   }
   calc();
 }
@@ -1170,6 +1186,9 @@ const inEl = document.getElementById("f_in");
   totalEl.classList.add("fi-green");
   totalEl.oninput = null;
   document.getElementById("ppdRow").style.display = "block";
+  document.getElementById("totalCustomChk").closest("label").style.display = "";
+document.getElementById("f_supplier_net").closest(".fg").style.display = "";
+document.getElementById("f_supplier_monthly").closest(".fg").style.display = "";
   document.getElementById("driverRow").style.display = "none";
   document.getElementById("carImgPreview").style.display = "none";
   document.getElementById("f_img").value = "";
