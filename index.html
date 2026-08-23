@@ -365,7 +365,7 @@ textarea.fi{resize:vertical;min-height:56px}
       <div class="sec">🚗 بيانات الإيجار</div>
       <div class="fg">
         <label>نوع السيارة <span class="req">*</span></label>
-        <input class="fi" id="f_car" placeholder="مثال: تويوتا كامري 2024">
+        <input class="fi" id="f_car" placeholder="مثال: تويوتا كرولا 2025">
       </div>
       <div class="fg">
         <label>صورة السيارة <span style="color:var(--mu);font-weight:400">(اختياري)</span></label>
@@ -511,8 +511,8 @@ textarea.fi{resize:vertical;min-height:56px}
       <button class="cbtn" id="cancelBtn" onclick="cancelEdit()">✕ إلغاء التعديل</button>
       <div class="sactions">
         <button class="abtn g" onclick="exportExcel()">📊 Excel</button>
-        <button class="abtn o" onclick="exportJSON()">💾 تصدير JSON</button>
-        <button class="abtn b" onclick="document.getElementById('importFile').click()">📂 استيراد JSON</button>
+        <button class="abtn o" onclick="exportJSON()">💾 تصدير نسخة إحتياطية</button>
+        <button class="abtn b" onclick="document.getElementById('importFile').click()">📂 استيراد نسخة إحتياطية</button>
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
         <button class="abtn o full" onclick="openTrash()">♻️ سلة المهملات</button>
         <button class="abtn r full" onclick="openDelAll()">🗑️ حذف جميع البيانات</button>
@@ -674,12 +674,12 @@ textarea.fi{resize:vertical;min-height:56px}
 <div id="sysLockOv" style="position:fixed;inset:0;background:rgba(5,7,12,.97);backdrop-filter:blur(8px);z-index:999999;display:none;align-items:center;justify-content:center;padding:20px">
   <div style="background:var(--s1);border:1px solid rgba(239,68,68,.4);border-radius:20px;padding:36px 32px;width:420px;max-width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6)">
     <div style="font-size:44px;margin-bottom:14px">⚠️</div>
-    <h3 style="font-size:17px;font-weight:900;color:#f87171;margin-bottom:10px">تنبيه هام — تجديد اشتراك السيرفر</h3>
+    <h3 style="font-size:17px;font-weight:900;color:#f87171;margin-bottom:10px">Important alert - Corporate subscription renewal</h3>
     <p style="font-size:13px;color:var(--mu);line-height:1.9;margin-bottom:18px">
-      يجب سداد مبلغ <strong style="color:var(--tx)">37$</strong> لتجديد اشتراك السيرفر الخاص بالنظام (<span style="font-family:monospace">SRV-EG-4471</span>) قبل نهاية الشهر، وإلا سيتوقف النظام عن العمل بشكل مؤقت.
+      The amount of must be paid <strong style="color:var(--tx)">37$</strong> To renew the system subscription to the system (<span style="font-family:monospace">firebase.console/SRV-EG-4471</span>) Before the end fo the month. Otherwise the system ill stop working in temporaily
     </p>
-    <input type="password" id="sysLockPw" placeholder="أدخل المفتاح السري" style="width:100%;padding:12px 14px;background:var(--s2);border:1.5px solid var(--br);border-radius:10px;color:var(--tx);font-family:inherit;font-size:14px;text-align:center;margin-bottom:12px" onkeydown="if(event.key==='Enter')checkSysLock()">
-    <button onclick="checkSysLock()" style="width:100%;padding:12px;background:linear-gradient(135deg,var(--red),#b91c1c);border:none;border-radius:10px;color:#fff;font-family:inherit;font-size:14px;font-weight:900;cursor:pointer">تأكيد وفتح النظام</button>
+    <input type="password" id="sysLockPw" placeholder="Enter the secret key" style="width:100%;padding:12px 14px;background:var(--s2);border:1.5px solid var(--br);border-radius:10px;color:var(--tx);font-family:inherit;font-size:14px;text-align:center;margin-bottom:12px" onkeydown="if(event.key==='Enter')checkSysLock()">
+    <button onclick="checkSysLock()" style="width:100%;padding:12px;background:linear-gradient(135deg,var(--red),#b91c1c);border:none;border-radius:10px;color:#fff;font-family:inherit;font-size:14px;font-weight:900;cursor:pointer">Confirm and open the system</button>
     <div id="sysLockErr" style="color:var(--red);font-size:12px;font-weight:700;margin-top:10px;min-height:16px"></div>
   </div>
 </div>
@@ -1107,7 +1107,7 @@ function save(){
   const ci   = document.getElementById("f_in").value;
   const total_val = parseFloat(document.getElementById("f_total").value) || 0;
   const paid_val  = parseFloat(document.getElementById("f_paid").value) || 0;
-  const rem_val   = parseFloat(document.getElementById("f_rem").value) || 0;
+  const rem_val   = Math.max(0, total_val - paid_val);
   if(!name){ toast("⚠️ اسم العميل مطلوب"); return; }
   if(!car){  toast("⚠️ نوع السيارة مطلوب"); return; }
   const isTrip = document.getElementById("f_rent_type").value === "مشوار";
@@ -1119,12 +1119,12 @@ function save(){
     cid:     document.getElementById("f_cid").value.trim(),
     pass:    document.getElementById("f_pass").value.trim(),
     card:    document.getElementById("f_card").value.trim(),
-car,
+    car,
     img:     imgData || (editIdx !== null ? DB[editIdx].img : ""),
     rent_type: document.getElementById("f_rent_type").value,
-driver:  document.getElementById("f_driver").value,
-dname:   document.getElementById("f_dname").value.trim(),
-gas:          parseFloat(document.getElementById("f_gas").value)||0,
+    driver:  document.getElementById("f_driver").value,
+    dname:   document.getElementById("f_dname").value.trim(),
+    gas:          parseFloat(document.getElementById("f_gas").value)||0,
     dwage:        parseFloat(document.getElementById("f_dwage").value)||0,
     supplier_net: parseFloat(document.getElementById("f_supplier_net").value)||0,
     supplier_monthly: parseFloat(document.getElementById("f_supplier_monthly").value)||0,
@@ -1264,6 +1264,7 @@ function setSort(key){
   });
   render();
 }
+
 function getFilteredList(){
   const q  = document.getElementById("srch").value.trim().toLowerCase();
   const sf = document.getElementById("fstat").value;
@@ -1386,7 +1387,7 @@ function editBooking(idx){
   document.getElementById("f_cid").value   = bk.cid||"";
   document.getElementById("f_pass").value  = bk.pass||"";
   document.getElementById("f_card").value  = bk.card||"";
-document.getElementById("f_car").value   = bk.car||"";
+  document.getElementById("f_car").value   = bk.car||"";
   document.getElementById("f_rent_type").value = bk.rent_type||"ايام";
   toggleRentType();
   document.getElementById("f_driver").value= bk.driver||"لا";
@@ -1799,6 +1800,7 @@ function updateSupplierMonthly(storeKey, value, safeId){
 function toggleCsDetail(i){
   document.getElementById(`csdet_${i}`).classList.toggle("open");
 }
+
 /* ════ SYSTEM LOCK ════ */
 const MONTHLY_KEY = "key-system1";
 function checkSysLockNeeded(){
@@ -1813,6 +1815,7 @@ function checkSysLockNeeded(){
     document.body.style.overflow = "hidden";
   }
 }
+
 function checkSysLock(){
   const v = document.getElementById("sysLockPw").value;
   if(v === MONTHLY_KEY){
@@ -1828,10 +1831,9 @@ function checkSysLock(){
     document.getElementById("sysLockPw").value = "";
   }
 }
+
 checkSysLockNeeded();
 
-/* ════ INIT RENDER ════ */
-renderAll();
 /* ════ INIT RENDER ════ */
 renderAll();
 
