@@ -1280,7 +1280,7 @@ function getFilteredList(){
     (b.id||"").toLowerCase().includes(q)
   );
   if(fdVal) list=list.filter(b=> b.co===fdVal || b.ci===fdVal);
-  if(fdRange) list=list.filter(b=> dateInRange(b.co,fdRange) || dateInRange(b.ci,fdRange));
+  if(fdRange) list=list.filter(b=> dateInRange(b.co,fdRange));
   const fMonthVal = document.getElementById("fMonth").value;
   const fYearVal = document.getElementById("fYear").value;
   if(fMonthVal || fYearVal){
@@ -1521,7 +1521,7 @@ ${b.card?`<tr><td>رقم البطاقة</td><td>${b.card}</td></tr>`:""}
 <tr><td>سعر الإيجار / يوم</td><td>${(b.ppd||0).toLocaleString()} ج.م</td></tr>
 <tr><td>إجمالي الإيجار</td><td><strong>${(b.total||0).toLocaleString()} ج.م</strong></td></tr>
 <tr><td>المدفوع</td><td>${(b.paid||0).toLocaleString()} ج.م</td></tr>
-<tr><td>المتبقي</td><td><strong style="color:${(b.rem||0)>0?"#e53e3e":"#0d9488"}">${(b.rem||0).toLocaleString()} ج.م</strong></td></tr>
+<tr><td>المتبقي</td><td><strong style="color:${Math.max(0,(parseNum(b.total)||0)-(parseNum(b.paid)||0))>0?"#e53e3e":"#0d9488"}">${Math.max(0,(parseNum(b.total)||0)-(parseNum(b.paid)||0)).toLocaleString()} ج.م</strong></td></tr>
 <tr><td>الحالة</td><td>${b.status}</td></tr>
 ${b.notes?`<tr><td>ملاحظات</td><td>${b.notes}</td></tr>`:""}
 </table>
