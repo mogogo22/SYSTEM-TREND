@@ -333,6 +333,7 @@ textarea.fi{resize:vertical;min-height:56px}
     <div class="chip"><div class="dot" style="background:var(--blue)"></div><div><div class="sn" id="st7">—</div><div class="sl">صافي الإيرادات</div></div></div>
     <div class="chip"><div class="dot" style="background:var(--red)"></div><div><div class="sn" id="st6">—</div><div class="sl">إجمالي المتبقي</div></div></div>
     <button class="chip" style="cursor:pointer;border:1px solid var(--gold);background:rgba(200,151,58,.08)" onclick="openCarStats()"><div class="dot" style="background:var(--gold)"></div><div><div class="sn" style="font-size:14px">📊</div><div class="sl">إحصائيات العربيات</div></div></button>
+    <button class="chip" style="cursor:pointer;border:1px solid var(--blue);background:rgba(59,130,246,.08)" onclick="openSupplierReport()"><div class="dot" style="background:var(--blue)"></div><div><div class="sn" style="font-size:14px">🧾</div><div class="sl">تقرير المورد</div></div></button>
   </div>
   <div class="abody">
     <!-- ══ SIDEBAR / FORM ══ -->
@@ -655,6 +656,32 @@ textarea.fi{resize:vertical;min-height:56px}
         <button class="cs-cbtn" onclick="clearCarStatsFilter()">مسح الفلتر</button>
       </div>
       <div id="carStatsList"></div>
+    </div>
+  </div>
+</div>
+<!-- SUPPLIER REPORT MODAL -->
+<div class="ov" id="supplierReportOv">
+  <div class="modal" style="width:760px">
+    <div class="mhdr">
+      <h3>🧾 تقرير المورد (كشف حساب)</h3>
+      <button class="mcls" onclick="closeSupplierReport()">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="cs-filters">
+        <div class="cs-fg" style="flex:1.4">
+          <label>ابحث عن السيارة / المورد <span style="color:var(--red)">*</span></label>
+          <input class="fi" list="srCarList" id="srCar" placeholder="اكتب اسم السيارة..." style="padding:8px 10px;font-size:12px" oninput="updateSupplierMonths()">
+          <datalist id="srCarList"></datalist>
+        </div>
+        <div class="cs-fg"><label>الشهر</label><select class="fi" id="srMonth" style="padding:8px 10px;font-size:12px" onchange="onSupplierMonthChange()"><option value="">اختار السيارة الأول</option></select></div>
+        <div class="cs-fg" id="srManualMonthWrap" style="display:none"><label>اختار الشهر يدويًا</label><input type="month" id="srManualMonth" class="fi" style="padding:8px 10px;font-size:12px"></div>
+        <button class="cs-fbtn" onclick="generateSupplierReport()">توليد التقرير</button>
+        <button class="cs-cbtn" id="srPrintBtn" style="display:none" onclick="">🖨️ طباعة</button>
+      </div>
+      <div style="font-size:11px;color:var(--mu);margin-bottom:12px">
+        ⚠️ هذا التقرير مُعد للمورد فقط: يعرض أيام التشغيل والسعر اليومي المتفق عليه والمستحقات — ولا يعرض أسعار البيع للعملاء أو أرباح الشركة.
+      </div>
+      <div id="srResults"><div class="cs-empty">اختر السيارة والفترة ثم اضغط "توليد التقرير"</div></div>
     </div>
   </div>
 </div>
@@ -1526,6 +1553,162 @@ ${b.card?`<tr><td>رقم البطاقة</td><td>${b.card}</td></tr>`:""}
 ${b.notes?`<tr><td>ملاحظات</td><td>${b.notes}</td></tr>`:""}
 </table>
 <div class="footer">صدر بواسطة نظام Trend Car Rental — ${new Date().toLocaleDateString("ar-EG")}</div>
+<script>window.onload=()=>window.print()<\/script>
+</body></html>`);
+  w.document.close();
+}
+/* ════ SUPPLIER REPORT (تقرير المورد) ════ */
+let srData = [];
+function getCarListForSupplier(){
+  const seen = {};
+  DB.forEach(b=>{
+    const key = normalizeCarName(b.car);
+    if(key && !seen[key]) seen[key] = b.car;
+  });
+  return Object.values(seen).sort((a,b)=>a.localeCompare(b,"ar"));
+}
+function openSupplierReport(){
+  const dl = document.getElementById("srCarList");
+  const cars = getCarListForSupplier();
+  dl.innerHTML = cars.map(c=>`<option value="${c.replace(/"/g,"&quot;")}">`).join("");
+  document.getElementById("srCar").value = "";
+  document.getElementById("srMonth").innerHTML = '<option value="">اختار السيارة الأول</option>';
+  document.getElementById("srManualMonthWrap").style.display = "none";
+  document.getElementById("srResults").innerHTML = `<div class="cs-empty">اكتب اسم السيارة واختار الشهر ثم اضغط "توليد التقرير"</div>`;
+  document.getElementById("srPrintBtn").style.display = "none";
+  srData = [];
+  document.getElementById("supplierReportOv").classList.add("open");
+}
+function closeSupplierReport(){ document.getElementById("supplierReportOv").classList.remove("open"); }
+function onSupplierMonthChange(){
+  const val = document.getElementById("srMonth").value;
+  document.getElementById("srManualMonthWrap").style.display = (val === "__custom__") ? "" : "none";
+}
+function updateSupplierMonths(){
+  const car = document.getElementById("srCar").value.trim();
+  const monthSel = document.getElementById("srMonth");
+  document.getElementById("srManualMonthWrap").style.display = "none";
+  if(!car){ monthSel.innerHTML = '<option value="">اختار السيارة الأول</option>'; return; }
+  const key = normalizeCarName(car);
+  const months = {};
+  DB.forEach(b=>{
+    if(normalizeCarName(b.car) !== key) return;
+    const d = b.co || b.ci || "";
+    const mk = d.slice(0,7);
+    if(mk) months[mk] = true;
+  });
+  const list = Object.keys(months).sort((a,b)=>b.localeCompare(a));
+  let html = '<option value="">📅 كل الشهور (كل الفترة)</option>';
+  html += list.map(mk=>`<option value="${mk}">${monthLabel(mk)}</option>`).join("");
+  html += '<option value="__custom__">🗓️ اختار شهر تاني بنفسي</option>';
+  monthSel.innerHTML = html;
+}
+function generateSupplierReport(){
+  const car = document.getElementById("srCar").value.trim();
+  let month = document.getElementById("srMonth").value;
+  if(month === "__custom__") month = document.getElementById("srManualMonth").value;
+  if(!car){ toast("اكتب اسم السيارة / المورد الأول"); return; }
+  const from = month ? month + "-01" : "";
+  const to   = month ? month + "-31" : "";
+  const key = normalizeCarName(car);
+  let list = DB.filter(b => normalizeCarName(b.car) === key);
+  list = list.filter(b=>{
+    const d = b.co || b.ci || "";
+    if(from && d && d < from) return false;
+    if(to && d && d > to) return false;
+    return true;
+  });
+  list.sort((a,b)=> (a.ci||"").localeCompare(b.ci||""));
+  srData = list.map(b=>{
+    const days = parseInt(b.days) || 0;
+    const due  = parseNum(b.supplier_net);
+    const perDay = days > 0 ? Math.round(due / days) : due;
+    return {
+      ci: b.ci || "", co: b.co || "", days,
+      driver: b.driver === "نعم" ? "بسائق" : "بدون سائق",
+      perDay, due
+    };
+  });
+  renderSupplierReport(car, month);
+}
+function renderSupplierReport(car, month){
+  const el = document.getElementById("srResults");
+  const printBtn = document.getElementById("srPrintBtn");
+  if(!srData.length){
+    el.innerHTML = `<div class="cs-empty">لا توجد حجوزات لهذه السيارة ${month?"في "+monthLabel(month):""}</div>`;
+    printBtn.style.display = "none";
+    return;
+  }
+  const totalDays = srData.reduce((s,r)=>s+r.days,0);
+  const totalDue  = srData.reduce((s,r)=>s+r.due,0);
+  el.innerHTML = `
+    <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr style="background:var(--s3)">
+        <th style="padding:8px;text-align:center;border-bottom:1px solid var(--br)">من</th>
+        <th style="padding:8px;text-align:center;border-bottom:1px solid var(--br)">إلى</th>
+        <th style="padding:8px;text-align:center;border-bottom:1px solid var(--br)">الأيام</th>
+        <th style="padding:8px;text-align:center;border-bottom:1px solid var(--br)">الحالة</th>
+        <th style="padding:8px;text-align:center;border-bottom:1px solid var(--br)">السعر اليومي</th>
+        <th style="padding:8px;text-align:center;border-bottom:1px solid var(--br)">المستحق</th>
+      </tr></thead>
+      <tbody>
+      ${srData.map(r=>`<tr>
+        <td style="padding:7px 8px;text-align:center;border-bottom:1px dashed var(--br)">${dtFmt(r.ci)}</td>
+        <td style="padding:7px 8px;text-align:center;border-bottom:1px dashed var(--br)">${dtFmt(r.co)}</td>
+        <td style="padding:7px 8px;text-align:center;border-bottom:1px dashed var(--br)">${r.days}</td>
+        <td style="padding:7px 8px;text-align:center;border-bottom:1px dashed var(--br)">${r.driver}</td>
+        <td style="padding:7px 8px;text-align:center;border-bottom:1px dashed var(--br)">${numFmt(r.perDay)} ج.م</td>
+        <td style="padding:7px 8px;text-align:center;border-bottom:1px dashed var(--br);font-weight:900;color:var(--gold)">${numFmt(r.due)} ج.م</td>
+      </tr>`).join("")}
+      </tbody>
+      <tfoot>
+        <tr style="background:var(--s3)">
+          <td colspan="2" style="padding:9px 8px;font-weight:900">الإجمالي</td>
+          <td style="padding:9px 8px;text-align:center;font-weight:900">${totalDays}</td>
+          <td></td><td></td>
+          <td style="padding:9px 8px;text-align:center;font-weight:900;color:var(--gold)">${numFmt(totalDue)} ج.م</td>
+        </tr>
+      </tfoot>
+    </table>
+    </div>`;
+  printBtn.style.display = "";
+  printBtn.onclick = ()=>printSupplierReport(car, month, totalDays, totalDue);
+}
+function printSupplierReport(car, month, totalDays, totalDue){
+  if(!srData.length) return;
+  const periodLabel = month ? monthLabel(month) : "كل الفترات";
+  const w = window.open("","_blank","width=820,height=1000");
+  w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head>
+<meta charset="UTF-8"><title>تقرير مورد — ${car}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+body{font-family:'Cairo',sans-serif;padding:28px;color:#134e4a;background:#fff;max-width:820px;margin:0 auto}
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.hdr img{height:52px;object-fit:contain}
+.hdr .brand{font-size:15px;font-weight:900;color:#0d9488;text-align:left}
+h1{font-size:19px;border-bottom:3px solid #5eead4;padding-bottom:9px;margin:14px 0 6px;color:#0f766e}
+.sub{font-size:12px;color:#0d9488;margin-bottom:18px;font-weight:700}
+table{width:100%;border-collapse:collapse}
+th{background:#f0fdfa;color:#0f766e;font-size:12px;padding:9px 10px;border:1px solid #99f6e4;text-align:center}
+td{padding:8px 10px;border:1px solid #99f6e4;font-size:12px;text-align:center}
+tfoot td{font-weight:900;background:#f0fdfa;color:#0f766e;font-size:13px}
+.footer{margin-top:30px;font-size:11px;color:#5eead4;text-align:center;border-top:1px solid #99f6e4;padding-top:12px}
+</style></head><body>
+<div class="hdr">
+  <img src="trendcar.png" alt="Trend" onerror="this.style.display='none'">
+  <div class="brand">Trend Car Rental<br><span style="font-weight:400;font-size:11px;color:#5eead4">نظام إدارة تأجير السيارات</span></div>
+</div>
+<h1>تقرير كشف حساب مورد — ${car}</h1>
+<div class="sub">الفترة: ${periodLabel} &nbsp;|&nbsp; تاريخ الإصدار: ${new Date().toLocaleDateString("ar-EG")}</div>
+<table>
+<thead><tr><th>من</th><th>إلى</th><th>عدد الأيام</th><th>الحالة</th><th>السعر اليومي</th><th>المستحق</th></tr></thead>
+<tbody>
+${srData.map(r=>`<tr><td>${dtFmt(r.ci)}</td><td>${dtFmt(r.co)}</td><td>${r.days}</td><td>${r.driver}</td><td>${numFmt(r.perDay)} ج.م</td><td>${numFmt(r.due)} ج.م</td></tr>`).join("")}
+</tbody>
+<tfoot><tr><td colspan="2">الإجمالي</td><td>${totalDays}</td><td>—</td><td>—</td><td>${numFmt(totalDue)} ج.م</td></tr></tfoot>
+</table>
+<div class="footer">صدر بواسطة نظام Trend Car Rental — إجمالي المستحقات النهائية: ${numFmt(totalDue)} ج.م</div>
 <script>window.onload=()=>window.print()<\/script>
 </body></html>`);
   w.document.close();
