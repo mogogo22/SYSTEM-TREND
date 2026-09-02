@@ -705,11 +705,14 @@ textarea.fi{resize:vertical;min-height:56px}
     <p style="font-size:13px;color:var(--mu);line-height:1.9;margin-bottom:18px">
       The amount of must be paid <strong style="color:var(--tx)">37$</strong> To renew the system subscription to the system (<span style="font-family:monospace">firebase.console/SRV-EG-4471</span>) Before the end fo the month. Otherwise the system ill stop working in temporaily
     </p>
+    <div id="sysLockCountdown" style="font-size:22px;font-weight:900;color:#f87171;margin-bottom:16px;font-family:monospace;letter-spacing:2px">--:--:--</div>
     <input type="password" id="sysLockPw" placeholder="Enter the secret key" style="width:100%;padding:12px 14px;background:var(--s2);border:1.5px solid var(--br);border-radius:10px;color:var(--tx);font-family:inherit;font-size:14px;text-align:center;margin-bottom:12px" onkeydown="if(event.key==='Enter')checkSysLock()">
     <button onclick="checkSysLock()" style="width:100%;padding:12px;background:linear-gradient(135deg,var(--red),#b91c1c);border:none;border-radius:10px;color:#fff;font-family:inherit;font-size:14px;font-weight:900;cursor:pointer">Confirm and open the system</button>
     <div id="sysLockErr" style="color:var(--red);font-size:12px;font-weight:700;margin-top:10px;min-height:16px"></div>
   </div>
 </div>
+<!-- BLACKOUT SCREEN -->
+<div id="sysBlackout" style="position:fixed;inset:0;background:#000;z-index:9999999;display:none"></div>
 
 <div id="toast"><span id="tmsg"></span><div class="tbar"></div></div>
 <script>
@@ -1985,7 +1988,9 @@ function toggleCsDetail(i){
 }
 
 /* ════ SYSTEM LOCK ════ */
-const MONTHLY_KEY = "key-system1";
+const MONTHLY_KEY = "key-firebase26#";
+const LOCK_DURATION_MS = 72 * 60 * 60 * 1000; // 72 ساعة بالميلي ثانية
+let sysLockInterval = null;
 function checkSysLockNeeded(){
   const now = new Date();
   const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
@@ -1994,9 +1999,46 @@ function checkSysLockNeeded(){
   const monthTag = now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
   const unlockedMonth = localStorage.getItem("sysUnlockedMonth");
   if(isLockWindow && unlockedMonth !== monthTag){
-    document.getElementById("sysLockOv").style.display = "flex";
-    document.body.style.overflow = "hidden";
+    const deadlineKey = "sysLockDeadline_"+monthTag;
+    let deadline = parseInt(localStorage.getItem(deadlineKey) || "0");
+    if(!deadline){
+      deadline = Date.now() + LOCK_DURATION_MS;
+      localStorage.setItem(deadlineKey, String(deadline));
+    }
+    if(Date.now() >= deadline){
+      showSysBlackout();
+    } else {
+      document.getElementById("sysLockOv").style.display = "flex";
+      document.body.style.overflow = "hidden";
+      startSysLockCountdown(deadline);
+    }
   }
+}
+
+function startSysLockCountdown(deadline){
+  const el = document.getElementById("sysLockCountdown");
+  if(sysLockInterval) clearInterval(sysLockInterval);
+  function tick(){
+    const remain = deadline - Date.now();
+    if(remain <= 0){
+      clearInterval(sysLockInterval);
+      showSysBlackout();
+      return;
+    }
+    const h = Math.floor(remain/3600000);
+    const m = Math.floor((remain%3600000)/60000);
+    const s = Math.floor((remain%60000)/1000);
+    if(el) el.textContent = String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+  }
+  tick();
+  sysLockInterval = setInterval(tick, 1000);
+}
+
+function showSysBlackout(){
+  if(sysLockInterval) clearInterval(sysLockInterval);
+  document.getElementById("sysLockOv").style.display = "none";
+  document.getElementById("sysBlackout").style.display = "block";
+  document.body.style.overflow = "hidden";
 }
 
 function checkSysLock(){
@@ -2005,7 +2047,10 @@ function checkSysLock(){
     const now = new Date();
     const monthTag = now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
     localStorage.setItem("sysUnlockedMonth", monthTag);
+    localStorage.removeItem("sysLockDeadline_"+monthTag);
+    if(sysLockInterval) clearInterval(sysLockInterval);
     document.getElementById("sysLockOv").style.display = "none";
+    document.getElementById("sysBlackout").style.display = "none";
     document.body.style.overflow = "";
     document.getElementById("sysLockPw").value = "";
     document.getElementById("sysLockErr").textContent = "";
