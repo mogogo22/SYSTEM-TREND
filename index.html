@@ -265,6 +265,8 @@ textarea.fi{resize:vertical;min-height:56px}
 .amodal-item .aval.orange{color:var(--orange)}
 .amodal-ftr{padding:13px 20px;border-top:1px solid var(--br);text-align:center}
 .amodal-ftr button{padding:10px 32px;background:linear-gradient(135deg,var(--gold),#9a6e20);border:none;border-radius:50px;color:#07090e;font-family:inherit;font-size:13px;font-weight:900;cursor:pointer}
+.mohaned-col{display:none}
+body.is-mohaned .mohaned-col{display:table-cell}
 </style>
 </head>
 <body>
@@ -315,6 +317,14 @@ textarea.fi{resize:vertical;min-height:56px}
           <div class="chip" title="المستخدم الحالي">
             <div class="dot" style="background:var(--gold)"></div>
             <span id="currentUserLabel" style="font-size:12px;font-weight:700;">—</span>
+          </div>
+          <div class="chip" id="onlineUsersChip" style="display:none" title="المستخدمين المتصلين الآن">
+            <div class="dot" style="background:var(--green)"></div>
+            <span id="onlineUsersLabel" style="font-size:12px;font-weight:700;">—</span>
+          </div>
+          <div class="chip" id="rehamLastSeenChip" style="display:none" title="آخر ظهور لريهام">
+            <div class="dot" style="background:var(--blue)"></div>
+            <span id="rehamLastSeenLabel" style="font-size:12px;font-weight:700;">—</span>
           </div>
           <div class="hclock" id="clk">⏰ --:--</div>
           <button class="icobtn" title="أدوات Trend" onclick="window.open('https://mogogo22.github.io/Tools-Trend/','_blank')">🛠️</button>
@@ -581,6 +591,7 @@ textarea.fi{resize:vertical;min-height:56px}
               <th class="th-sort" onclick="setSort('total')">الإجمالي <span id="sortIcon_total"></span></th>
               <th class="th-sort" onclick="setSort('rem')">المتبقي <span id="sortIcon_rem"></span></th>
               <th class="th-sort" onclick="setSort('status')">الحالة <span id="sortIcon_status"></span></th>
+              <th class="mohaned-col">تاريخ الإنشاء</th>
               <th></th>
             </tr>
           </thead>
@@ -741,6 +752,8 @@ const rtdb = firebase.database();
 const rtdbRef = rtdb.ref("trend_system/bookings");
 const trashRef = rtdb.ref("trend_system/bookings_trash");
 const smRef = rtdb.ref("trend_system/supplier_monthly");
+const presenceRef = rtdb.ref("trend_system/presence");
+const lastSeenRef = rtdb.ref("trend_system/lastSeen");
 let rtdbSuppressNext = false;
 
 function startTrashSync(){
@@ -863,9 +876,59 @@ function doLogin(){
   }
 }
 function doLogout(){
+  const myUser = sessionStorage.getItem("tcUser");
+  if(myUser) presenceRef.child(myUser).remove();
   sessionStorage.removeItem("tcAuth");
   sessionStorage.removeItem("tcUser");
   location.reload();
+}
+/* ════ PRESENCE (المستخدمين المتصلين الآن) ════ */
+function startPresence(){
+  const user = sessionStorage.getItem("tcUser");
+  if(!user) return;
+  const myPresenceRef = presenceRef.child(user);
+  const myLastSeenRef = lastSeenRef.child(user);
+  rtdb.ref(".info/connected").on("value", function(snap){
+    if(snap.val() === true){
+      myPresenceRef.onDisconnect().remove();
+      myLastSeenRef.onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+      myPresenceRef.set(true);
+    }
+  });
+  let onlineNames = [];
+  let lastSeenData = {};
+  presenceRef.on("value", function(snapshot){
+    onlineNames = Object.keys(snapshot.val() || {});
+    renderOnlineUsers(onlineNames);
+    renderRehamLastSeen(onlineNames, lastSeenData);
+  });
+  lastSeenRef.on("value", function(snapshot){
+    lastSeenData = snapshot.val() || {};
+    renderRehamLastSeen(onlineNames, lastSeenData);
+  });
+}
+function renderOnlineUsers(names){
+  const chip = document.getElementById("onlineUsersChip");
+  const lbl  = document.getElementById("onlineUsersLabel");
+  if(!chip || !lbl) return;
+  if(sessionStorage.getItem("tcUser") !== "مهند"){ chip.style.display = "none"; return; }
+  chip.style.display = "flex";
+  lbl.textContent = names.length ? "متصل: " + names.join("، ") : "لا يوجد متصلين";
+}
+function renderRehamLastSeen(onlineNames, lastSeenData){
+  const chip = document.getElementById("rehamLastSeenChip");
+  const lbl  = document.getElementById("rehamLastSeenLabel");
+  if(!chip || !lbl) return;
+  if(sessionStorage.getItem("tcUser") !== "مهند"){ chip.style.display = "none"; return; }
+  chip.style.display = "flex";
+  if(onlineNames.includes("ريهام")){
+    lbl.textContent = "ريهام: متصلة الآن 🟢";
+  } else {
+    const ts = lastSeenData["ريهام"];
+    lbl.textContent = ts
+      ? "آخر ظهور لريهام: " + dtFmt(ts) + " — " + new Date(ts).toLocaleTimeString("ar-EG",{hour:"2-digit",minute:"2-digit"})
+      : "آخر ظهور لريهام: لا يوجد سجل بعد";
+  }
 }
 if(sessionStorage.getItem("tcAuth") === "1" && sessionStorage.getItem("tcUser")){
   document.getElementById("loginPage").style.display = "none";
@@ -876,6 +939,8 @@ if(sessionStorage.getItem("tcAuth") === "1" && sessionStorage.getItem("tcUser"))
 function initApp(){
   const label = document.getElementById("currentUserLabel");
   if(label) label.textContent = sessionStorage.getItem("tcUser") || "—";
+  document.body.classList.toggle("is-mohaned", sessionStorage.getItem("tcUser") === "مهند");
+  startPresence();
   clearForm();
   document.getElementById("fdate").value = "";
   document.getElementById("fdateRange").value = "";
@@ -1345,7 +1410,7 @@ function render(){
   document.getElementById("tblSub").textContent = `${list.length} حجز`;
   const tbody = document.getElementById("tbody");
   if(!list.length){
-    tbody.innerHTML=`<tr><td colspan="12"><div class="empty-state"><div class="ei">📋</div><h3>لا توجد نتائج</h3><p>جرب تغيير الفلتر أو أضف حجز جديد</p></div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="13"><div class="empty-state"><div class="ei">📋</div><h3>لا توجد نتائج</h3><p>جرب تغيير الفلتر أو أضف حجز جديد</p></div></td></tr>`;
     return;
   }
   tbody.innerHTML = list.map(b=>`
@@ -1361,6 +1426,7 @@ function render(){
       <td style="color:var(--green);font-weight:700;white-space:nowrap">${numFmt(b.total||0)} ج.م</td>
       <td style="color:${Math.max(0,(parseNum(b.total)||0)-(parseNum(b.paid)||0))>0?"var(--red)":"var(--green)"};font-weight:700;white-space:nowrap">${numFmt(Math.max(0,(parseNum(b.total)||0)-(parseNum(b.paid)||0)))} ج.م</td>
       <td>${statusBadge(b)}</td>
+      <td class="mohaned-col" style="white-space:nowrap;font-size:11px;color:var(--mu)">${b.at?dtFmt(b.at)+" — "+new Date(b.at).toLocaleTimeString("ar-EG",{hour:"2-digit",minute:"2-digit"}):"—"}</td>
       <td onclick="event.stopPropagation()">
         <div class="ra">
           <button class="rab edt" title="تعديل" onclick="editBooking(${b._i})">✏️</button>
