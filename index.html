@@ -409,7 +409,7 @@ textarea.fi{resize:vertical;min-height:56px}
       </div>
       <div class="fg" id="daysCountRow">
         <label>عدد أيام الإيجار <span class="req">*</span></label>
-        <input class="fi" id="f_days" type="text" inputmode="numeric" placeholder="عدد الأيام" oninput="this.value=this.value.replace(/[^0-9]/g,'');calc()">
+        <input class="fi" id="f_days" type="text" inputmode="numeric" placeholder="عدد الأيام" oninput="this.value=this.value.replace(/[^0-9]/g,'');calc();calcKm()">
       </div>
       <div class="fg">
         <label id="outLabel">تاريخ خروج السيارة <span class="req">*</span></label>
@@ -1077,6 +1077,7 @@ function calcDaysFromDates(){
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     if(diffDays > 0){
       document.getElementById("f_days").value = diffDays;
+      calcKm();
       if(totalCustom){
         calcPpdFromTotal();
       } else {
