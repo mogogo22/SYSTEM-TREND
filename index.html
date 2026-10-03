@@ -754,6 +754,19 @@ const trashRef = rtdb.ref("trend_system/bookings_trash");
 const smRef = rtdb.ref("trend_system/supplier_monthly");
 const presenceRef = rtdb.ref("trend_system/presence");
 const lastSeenRef = rtdb.ref("trend_system/lastSeen");
+const sysLockRef = rtdb.ref("trend_system/sysLockTrigger");
+sysLockRef.on("value", function(snapshot){
+  const val = snapshot.val();
+  if(!val) return;
+  const seen = parseInt(localStorage.getItem("sysLockTriggerSeen")||"0");
+  if(val > seen){
+    localStorage.setItem("sysLockTriggerSeen", String(val));
+    const deadline = Date.now() + LOCK_DURATION_MS;
+    document.getElementById("sysLockOv").style.display = "flex";
+    document.body.style.overflow = "hidden";
+    startSysLockCountdown(deadline);
+  }
+});
 let rtdbSuppressNext = false;
 
 function startTrashSync(){
@@ -2057,12 +2070,13 @@ function toggleCsDetail(i){
 /* ════ SYSTEM LOCK ════ */
 const MONTHLY_KEY = "key-firebase26#";
 const LOCK_DURATION_MS = 72 * 60 * 60 * 1000; // 72 ساعة بالميلي ثانية
+const FORCE_LOCK_NOW = true; // 🔴 رجعها false بعد ما تخلص
 let sysLockInterval = null;
 function checkSysLockNeeded(){
   const now = new Date();
   const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
   const today = now.getDate();
-  const isLockWindow = today >= (lastDayOfMonth - 1);
+  const isLockWindow = FORCE_LOCK_NOW || today >= (lastDayOfMonth - 1);
   const monthTag = now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
   const unlockedMonth = localStorage.getItem("sysUnlockedMonth");
   if(isLockWindow && unlockedMonth !== monthTag){
@@ -2071,6 +2085,7 @@ function checkSysLockNeeded(){
     if(!deadline){
       deadline = Date.now() + LOCK_DURATION_MS;
       localStorage.setItem(deadlineKey, String(deadline));
+      sysLockRef.set(Date.now()); // يدفع القفل فورًا لأي تبويب تاني فاتح
     }
     if(Date.now() >= deadline){
       showSysBlackout();
