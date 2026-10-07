@@ -1954,19 +1954,29 @@ function computeCarStats(from, to){
     const g = groups[key];
     g.count++;
     const mk = (b.co||b.ci||"").slice(0,7);
+    const rev = parseNum(b.total), sup = parseNum(b.supplier_net), wg = parseNum(b.dwage), gs = parseNum(b.gas);
+    g.revenue += rev; g.wage += wg; g.gas += gs;
     if(mk){
-      if(!g.byMonth[mk]) g.byMonth[mk] = {revenue:0,count:0};
-      g.byMonth[mk].revenue += parseNum(b.total);
-      g.byMonth[mk].count++;
+      if(!g.byMonth[mk]) g.byMonth[mk] = {revenue:0,count:0,bookSupplier:0,wage:0,gas:0,supplier:0,net:0};
+      const m = g.byMonth[mk];
+      m.revenue += rev; m.count++; m.bookSupplier += sup; m.wage += wg; m.gas += gs;
+    } else {
+      g.supplier += sup;
     }
-    g.revenue  += parseNum(b.total);
-    g.supplier += parseNum(b.supplier_net);
-    g.wage     += parseNum(b.dwage);
-    g.gas      += parseNum(b.gas);
-    g.net      += (b.company_net!==undefined && b.company_net!=="" ? parseNum(b.company_net) : (parseNum(b.total)-parseNum(b.supplier_net)-parseNum(b.dwage)-parseNum(b.gas)));
     g.bookings.push(b);
   });
-  return Object.values(groups).sort((a,b)=>b.count-a.count);
+  const result = Object.values(groups);
+  result.forEach(g=>{
+    Object.keys(g.byMonth).forEach(mk=>{
+      const m = g.byMonth[mk];
+      const manual = SUPPLIER_MONTHLY[g.key+'|'+mk];
+      m.supplier = manual ? manual : m.bookSupplier;
+      m.net = m.revenue - m.supplier - m.wage - m.gas;
+      g.supplier += m.supplier;
+    });
+    g.net = g.revenue - g.supplier - g.wage - g.gas;
+  });
+  return result.sort((a,b)=>b.count-a.count);
 }
 function openCarStats(){
   document.getElementById("csFrom").value = "";
@@ -2012,12 +2022,12 @@ function renderCarStatsList(){
           ${Object.entries(g.byMonth).sort((a,b)=>b[0].localeCompare(a[0])).map(([mk,mv])=>{
             const storeKey = g.key+'|'+mk;
             const cost = SUPPLIER_MONTHLY[storeKey]||0;
-            const net = mv.revenue - cost;
+            const net = mv.net;
             const safeId = (g.key+'_'+mk).replace(/[^a-zA-Z0-9_]/g,'');
             return `<div class="cs-drow" style="align-items:center">
               <span>${monthLabel(mk)} (${mv.count} حجز) — إيراد ${numFmt(mv.revenue)} ج.م</span>
               <span style="display:flex;align-items:center;gap:6px">
-                تكلفة المورد: <input class="fi" style="width:90px;padding:4px 8px;font-size:11px" value="${cost||''}" placeholder="0" onchange="updateSupplierMonthly('${storeKey}', this.value, '${safeId}')">
+                تكلفة المورد: <input class="fi" style="width:90px;padding:4px 8px;font-size:11px" value="${cost||''}" placeholder="${mv.bookSupplier}" onchange="updateSupplierMonthly('${storeKey}', this.value, '${safeId}')">
                 <b id="smNet_${safeId}" style="color:${net>=0?'var(--green)':'var(--red)'}">${net>=0?'+':''}${numFmt(net)} ج.م</b>
               </span>
             </div>`;
@@ -2041,14 +2051,9 @@ function updateSupplierMonthly(storeKey, value, safeId){
   const v = parseNum(value);
   if(v > 0) SUPPLIER_MONTHLY[storeKey] = v; else delete SUPPLIER_MONTHLY[storeKey];
   saveSupplierMonthly();
-  const parts = storeKey.split("|");
-  const carKey = parts[0], mk = parts[1];
-  const g = csData.find(x=>x.key===carKey);
-  if(g && g.byMonth[mk]){
-    const net = g.byMonth[mk].revenue - v;
-    const el = document.getElementById("smNet_"+safeId);
-    if(el){ el.textContent = (net>=0?"+":"")+numFmt(net)+" ج.م"; el.style.color = net>=0 ? "var(--green)" : "var(--red)"; }
-  }
+  const openIds = [...document.querySelectorAll('.cs-detail.open')].map(e=>e.id);
+  applyCarStatsFilter();
+  openIds.forEach(id=>{ const e=document.getElementById(id); if(e) e.classList.add('open'); });
 }
 function toggleCsDetail(i){
   document.getElementById(`csdet_${i}`).classList.toggle("open");
