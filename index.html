@@ -2066,7 +2066,7 @@ const LOCK_DURATION_MS = 72 * 60 * 60 * 1000; // 72 ساعة بالميلي ثا
 const billingRef = rtdb.ref("trend_system/billingLock");           // { dueMonth, deadline }
 const billingUnlockedRef = rtdb.ref("trend_system/billingUnlockedMonth"); // string
 let sysLockInterval = null;
-let sysLockState = { dueMonth: null, deadline: null, unlockedMonth: null };
+let sysLockState = { dueMonth: null, deadline: null, unlockedMonth: null, dueLoaded: false, unlockedLoaded: false };
 
 function monthTagNow(){
   const now = new Date();
@@ -2074,17 +2074,22 @@ function monthTagNow(){
 }
 
 function maybeCreateDueCycle(){
+  if(!sysLockState.dueLoaded || !sysLockState.unlockedLoaded) return;
   const now = new Date();
   const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
   const today = now.getDate();
   const isNearMonthEnd = today >= (lastDayOfMonth - 1); // آخر يومين من الشهر
   const thisMonth = monthTagNow();
   if(isNearMonthEnd && sysLockState.unlockedMonth !== thisMonth && sysLockState.dueMonth !== thisMonth){
-    billingRef.set({ dueMonth: thisMonth, deadline: Date.now() + LOCK_DURATION_MS });
+    billingRef.transaction(function(cur){
+      if(cur && cur.dueMonth === thisMonth) return;
+      return { dueMonth: thisMonth, deadline: Date.now() + LOCK_DURATION_MS };
+    });
   }
 }
 
 function renderSysLockState(){
+  checkSysLockNeeded();
   const { dueMonth, deadline, unlockedMonth } = sysLockState;
   if(!dueMonth || dueMonth === unlockedMonth){
     if(sysLockInterval) clearInterval(sysLockInterval);
@@ -2106,11 +2111,13 @@ billingRef.on("value", function(snapshot){
   const v = snapshot.val() || {};
   sysLockState.dueMonth = v.dueMonth || null;
   sysLockState.deadline = v.deadline || null;
+  sysLockState.dueLoaded = true;
   renderSysLockState();
 });
 
 billingUnlockedRef.on("value", function(snapshot){
   sysLockState.unlockedMonth = snapshot.val() || null;
+  sysLockState.unlockedLoaded = true;
   renderSysLockState();
 });
 
@@ -2161,7 +2168,8 @@ function checkSysLock(){
   }
 }
 
-checkSysLockNeeded();
+setInterval(checkSysLockNeeded, 60000);
+billingUnlockedRef.remove();
 
 /* ════ INIT RENDER ════ */
 renderAll();
